@@ -75,6 +75,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ status: 'ignored' });
     }
 
+    const incomingMessageId = message?.id;
+
+    if (!incomingMessageId) {
+      return NextResponse.json({ status: 'ignored_no_message_id' });
+    }
+
     if (!message.text?.body) {
       return NextResponse.json({
         status: 'ignored_non_text',
@@ -82,9 +88,38 @@ export async function POST(request: Request) {
       });
     }
 
+    const { data: existingMessage, error: existingMessageError } = await supabase
+      .from('mensajes_recibidos')
+      .select('id')
+      .eq('id', incomingMessageId)
+      .maybeSingle();
+
+    if (existingMessageError) {
+      return NextResponse.json({ error: existingMessageError.message }, { status: 500 });
+    }
+
+    if (existingMessage) {
+      console.log('Mensaje duplicado ignorado:', incomingMessageId);
+      return NextResponse.json({ status: 'duplicate_ignored' });
+    }
+
     const phone = message.from;
     const text = message.text.body || '';
     const clientName = value?.contacts?.[0]?.profile?.name || 'Cliente';
+
+    const { error: insertMessageError } = await supabase
+      .from('mensajes_recibidos')
+      .insert([
+        {
+          id: incomingMessageId,
+          whatsapp: phone,
+          texto: text,
+        },
+      ]);
+
+    if (insertMessageError) {
+      return NextResponse.json({ error: insertMessageError.message }, { status: 500 });
+    }
 
     console.log('2. Phone:', phone);
     console.log('3. Text:', text);
@@ -215,10 +250,10 @@ Mensaje nuevo del cliente:
       parsed.estado === 'Cliente'
         ? parsed.estado
         : contact?.estado === 'Interesado' ||
-          contact?.estado === 'Evaluando' ||
-          contact?.estado === 'Cliente'
-        ? contact.estado
-        : 'Interesado';
+            contact?.estado === 'Evaluando' ||
+            contact?.estado === 'Cliente'
+          ? contact.estado
+          : 'Interesado';
 
     const { data: updatedContact, error: memoryUpdateError } = await supabase
       .from('contactos')
@@ -243,6 +278,7 @@ Mensaje nuevo del cliente:
     const resumenPrevio = updatedContact?.resumen || parsed.resumen || '';
     const necesidadDetectada = updatedContact?.necesidad || parsed.necesidad || '';
     const ultimoTema = updatedContact?.ultimo_tema || parsed.ultimo_tema || text;
+    const ultimaRespuesta = updatedContact?.ultima_respuesta || 'Sin respuesta previa';
 
     const replyPrompt = `
 Eres un bot con IA de atención comercial para servicios de marketing digital y generación de clientes.
@@ -266,6 +302,7 @@ CONTEXTO DEL CLIENTE:
 - Necesidad detectada: ${necesidadDetectada || 'Sin necesidad detectada'}
 - Estado: ${estadoValido}
 - Nombre actual detectado: ${updatedContact?.nombre || clientName || 'No detectado'}
+- Última respuesta enviada: ${ultimaRespuesta}
 - Mensaje nuevo: "${text}"
 
 ESTRATEGIA OBLIGATORIA SEGÚN VECES DE CONTACTO:
@@ -297,6 +334,13 @@ ESTRATEGIA OBLIGATORIA SEGÚN VECES DE CONTACTO:
   - "Necesito este dato para proponerte algo real..."
   - "Con eso te armo una estrategia clara..."
 - No suavices el cierre.
+
+REGLAS DE NO REPETICIÓN:
+- No repitas la misma pregunta que hiciste en la última respuesta.
+- Si ya pediste nombre, negocio o ciudad, pide el siguiente dato faltante.
+- Si el resumen previo ya muestra que el cliente dio datos, avanza.
+- Evita reformular la misma intención en dos mensajes seguidos.
+- Si ya hay suficiente contexto, confirma avance y lleva a propuesta o llamada.
 
 REGLA EXTRA:
 - Revisa el resumen previo y el contexto.
@@ -336,7 +380,8 @@ Devuelve solo el texto final que se enviará al cliente.
     );
 
     const reply =
-      response.choices[0]?.message?.content || 'Soy el bot con IA del equipo. Para avanzarte bien, dime a qué se dedica tu negocio y en qué ciudad estás.';
+      response.choices[0]?.message?.content ||
+      'Soy el bot con IA del equipo. Para avanzarte bien, dime a qué se dedica tu negocio y en qué ciudad estás.';
 
     const { error: replySaveError } = await supabase
       .from('contactos')
