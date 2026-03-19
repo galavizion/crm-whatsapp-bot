@@ -1,23 +1,30 @@
 import Link from "next/link";
-import { ArrowLeft, MessageCircle, Phone, User, Tag, FileText } from "lucide-react";
-import { getLeadsFromSheet } from "@/lib/googleSheets";
-import { saveLeadNotes } from "./actions";
+import {
+  ArrowLeft,
+  MessageCircle,
+  Phone,
+  User,
+  Tag,
+  FileText,
+} from "lucide-react";
+import { supabaseServer } from "@/lib/supabase/server";
 
 interface Props {
-  params: Promise<{
+  params: {
     telefono: string;
-  }>;
+  };
 }
 
 export default async function LeadDetailPage({ params }: Props) {
-  const { telefono } = await params;
-  const leads = await getLeadsFromSheet();
+  const telefono = params.telefono;
 
-  const lead = leads.find(
-    (l) => String(l.telefono).trim() === String(telefono).trim()
-  );
+  const { data: lead, error } = await supabaseServer
+    .from("contactos")
+    .select("*")
+    .eq("whatsapp", telefono)
+    .maybeSingle();
 
-  if (!lead) {
+  if (!lead || error) {
     return (
       <div className="space-y-6">
         <Link
@@ -29,16 +36,15 @@ export default async function LeadDetailPage({ params }: Props) {
         </Link>
 
         <div className="rounded-3xl border border-gray-200 bg-white p-10 shadow-sm">
-          <h1 className="text-2xl font-bold text-gray-900">Lead no encontrado</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            No se encontró un registro con ese teléfono dentro del CRM.
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Lead no encontrado
+          </h1>
         </div>
       </div>
     );
   }
 
-  const phone = String(lead.telefono || "").trim();
+  const phone = lead.whatsapp;
   const whatsappPhone = normalizeMexPhone(phone);
 
   return (
@@ -53,242 +59,119 @@ export default async function LeadDetailPage({ params }: Props) {
             Volver a leads
           </Link>
 
-          <p className="mt-5 text-sm font-medium uppercase tracking-wide text-gray-500">
+          <p className="mt-5 text-sm uppercase text-gray-500">
             Ficha del lead
           </p>
 
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
+          <h1 className="mt-2 text-3xl font-bold text-gray-900">
             {lead.nombre || "Sin nombre"}
           </h1>
 
-          <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="mt-4 flex flex-wrap gap-3">
             <StatusBadge status={lead.estado || "Sin estado"} />
 
-            <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+            <span className="badge">
               <Phone size={14} />
               {phone}
             </span>
 
-            <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+            <span className="badge">
               <User size={14} />
-              {lead.fuente || "Sin fuente"}
+              WhatsApp Lead
             </span>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href="/leads"
-            className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
-          >
-            Ver lista
-          </Link>
-
-          {whatsappPhone ? (
+        <div className="flex gap-3">
+          {whatsappPhone && (
             <a
               href={`https://wa.me/${whatsappPhone}`}
               target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-2xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-gray-800"
+              className="btn-primary"
             >
               <MessageCircle size={16} />
-              Abrir WhatsApp
+              WhatsApp
             </a>
-          ) : null}
+          )}
         </div>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-3">
         <div className="xl:col-span-2 space-y-6">
-          <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-gray-100 p-3 text-gray-800">
-                <FileText size={20} />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Resumen de conversación
-                </h2>
-                <p className="text-sm text-gray-500">
-                  Interpretación generada desde el flujo del bot.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 rounded-2xl bg-gray-50 p-5">
-              <p className="text-sm leading-7 text-gray-800">
-                {lead.resumenConversacion || "Sin resumen disponible."}
-              </p>
-            </div>
-          </div>
+          <Card title="Resumen de conversación">
+            {lead.resumen || "Sin resumen disponible"}
+          </Card>
 
           <div className="grid gap-6 md:grid-cols-2">
-            <InfoCard title="Mensaje inicial" value={lead.mensajeInicial || "Sin dato"} />
-            <InfoCard title="Último mensaje" value={lead.ultimoMensaje || "Sin dato"} />
-            <InfoCard title="Último tema" value={lead.ultimoTema || "Sin dato"} />
-            <InfoCard
-              title="Necesidad detectada"
-              value={lead.necesidadDetectada || "Sin clasificar"}
-            />
+            <InfoCard title="Último tema" value={lead.ultimo_tema || "-"} />
+            <InfoCard title="Necesidad" value={lead.necesidad || "-"} />
           </div>
 
-          <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Última respuesta del bot
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Último mensaje enviado automáticamente por el sistema.
-            </p>
-
-            <div className="mt-5 rounded-2xl bg-gray-50 p-5">
-              <p className="text-sm leading-7 text-gray-800">
-                {lead.ultimaRespuestaBot || "Sin respuesta registrada."}
-              </p>
-            </div>
-          </div>
+          <Card title="Última respuesta del bot">
+            {lead.ultima_respuesta || "Sin respuesta"}
+          </Card>
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Información general
-            </h2>
+          <div className="card">
+            <h2 className="title">Información</h2>
 
-            <div className="mt-5 space-y-4">
-              <KeyValue label="Nombre" value={lead.nombre || "Sin nombre"} />
-              <KeyValue label="Teléfono" value={phone || "Sin teléfono"} />
-              <KeyValue label="Fuente" value={lead.fuente || "Sin fuente"} />
-              <KeyValue label="Estado" value={lead.estado || "Sin estado"} />
-              <KeyValue
-                label="Fecha de contacto"
-                value={lead.fechaContacto || "Sin registro"}
-              />
-              <KeyValue
-                label="Último contacto"
-                value={lead.ultimoContacto || "Sin registro"}
-              />
-              <KeyValue
-                label="Veces de contacto"
-                value={String(lead.vecesContacto ?? 0)}
-              />
-            </div>
+            <KeyValue label="Nombre" value={lead.nombre || "-"} />
+            <KeyValue label="Teléfono" value={phone} />
+            <KeyValue label="Estado" value={lead.estado || "-"} />
+            <KeyValue
+              label="Contactos"
+              value={String(lead.veces_contacto ?? 0)}
+            />
           </div>
 
-<div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-  <div className="flex items-center gap-3">
-    <div className="rounded-2xl bg-gray-100 p-3 text-gray-800">
-      <Tag size={20} />
-    </div>
-    <div>
-      <h2 className="text-xl font-semibold text-gray-900">Clasificación</h2>
-      <p className="text-sm text-gray-500">
-        Datos útiles para seguimiento comercial.
-      </p>
-    </div>
-  </div>
+          <div className="card">
+            <h2 className="title">Clasificación</h2>
 
-  <div className="mt-5 space-y-4">
-    <KeyValue
-      label="Vendedor asignado"
-      value={lead.etiqueta || "Sin asignar"}
-    />
-    <KeyValue label="wamid" value={lead.wamid || "Sin wamid"} />
-  </div>
-</div>
-
-<div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-  <h2 className="text-xl font-semibold text-gray-900">Notas internas</h2>
-  <p className="mt-1 text-sm text-gray-500">
-    Agrega observaciones manuales y guárdalas en el CRM.
-  </p>
-
-  <form action={saveLeadNotes} className="mt-5 space-y-4">
-    <input type="hidden" name="telefono" value={phone} />
-
-    <textarea
-      name="notas"
-      defaultValue={lead.notas || ""}
-      rows={6}
-      className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-gray-400"
-      placeholder="Escribe aquí observaciones del lead..."
-    />
-
-    <button
-      type="submit"
-      className="inline-flex items-center gap-2 rounded-2xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-gray-800"
-    >
-      Guardar notas
-    </button>
-  </form>
-</div>
-
-
-
-
-
+            <KeyValue label="Estado" value={lead.estado || "-"} />
+            <KeyValue label="Necesidad" value={lead.necesidad || "-"} />
+          </div>
         </div>
       </section>
     </div>
   );
 }
 
-function InfoCard({ title, value }: { title: string; value: string }) {
+/* COMPONENTES */
+
+function Card({ title, children }: any) {
   return (
-    <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-        {title}
-      </h3>
-      <p className="mt-3 text-sm leading-7 text-gray-800">{value}</p>
+    <div className="card">
+      <h2 className="title">{title}</h2>
+      <p className="text-sm mt-3">{children}</p>
     </div>
   );
 }
 
-function KeyValue({ label, value }: { label: string; value: string }) {
+function InfoCard({ title, value }: any) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-2xl bg-gray-50 px-4 py-3">
-      <span className="text-sm font-medium text-gray-500">{label}</span>
-      <span className="max-w-[60%] text-right text-sm font-semibold text-gray-900 break-words">
-        {value}
-      </span>
+    <div className="card">
+      <h3 className="subtitle">{title}</h3>
+      <p>{value}</p>
     </div>
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const normalized = status.toLowerCase().trim();
+function KeyValue({ label, value }: any) {
+  return (
+    <div className="flex justify-between text-sm py-2">
+      <span className="text-gray-500">{label}</span>
+      <span className="font-semibold">{value}</span>
+    </div>
+  );
+}
 
-  let classes =
-    "inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ";
-
-  if (["nuevo"].includes(normalized)) {
-    classes += "bg-blue-50 text-blue-700 ring-blue-200";
-  } else if (
-    ["seguimiento", "interesado", "interesadoo"].includes(normalized)
-  ) {
-    classes += "bg-amber-50 text-amber-700 ring-amber-200";
-  } else if (["cerrado", "ganado", "cliente"].includes(normalized)) {
-    classes += "bg-emerald-50 text-emerald-700 ring-emerald-200";
-  } else if (["perdido"].includes(normalized)) {
-    classes += "bg-red-50 text-red-700 ring-red-200";
-  } else {
-    classes += "bg-gray-100 text-gray-700 ring-gray-200";
-  }
-
-  return <span className={classes}>{status}</span>;
+function StatusBadge({ status }: any) {
+  return <span className="badge">{status}</span>;
 }
 
 function normalizeMexPhone(phone: string) {
   const cleaned = phone.replace(/\D/g, "");
-
-  if (!cleaned) return "";
-
-  if (cleaned.startsWith("52") && cleaned.length >= 12) {
-    return cleaned;
-  }
-
-  if (cleaned.length === 10) {
-    return `52${cleaned}`;
-  }
-
+  if (cleaned.length === 10) return `52${cleaned}`;
   return cleaned;
 }
