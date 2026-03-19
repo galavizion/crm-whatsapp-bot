@@ -40,7 +40,7 @@ type SummaryMemory = {
   resumen: string;
   ultimo_tema: string;
   necesidad: string;
-  estado: "Interesado" | "Evaluando" | "Llamar";
+  estado: "Nuevo" | "Interesado" | "Evaluando" | "Llamar" | "Cliente" | "Perdido";
 };
 
 export async function GET(req: NextRequest) {
@@ -531,7 +531,6 @@ function extractResponseText(response: any): string {
 
   return "";
 }
-
 async function updateContactSummaryWithAI({
   contacto,
   userMessage,
@@ -546,15 +545,18 @@ async function updateContactSummaryWithAI({
   const previousSummary = cleanText(contacto?.resumen || "");
   const previousTopic = cleanText(contacto?.ultimo_tema || "");
   const previousNeed = cleanText(contacto?.necesidad || "");
-  const previousStatus = cleanText(contacto?.estado || "Interesado");
+  const previousStatus = cleanText(contacto?.estado || "Nuevo");
+
+  const autoStatus = getAutoStatusByContactCount(
+    Number(contacto?.veces_contacto || 1),
+    previousStatus
+  );
 
   let memory: SummaryMemory = {
     resumen: previousSummary,
     ultimo_tema: previousTopic,
     necesidad: previousNeed,
-    estado: (["Interesado", "Evaluando", "Llamar"].includes(previousStatus)
-      ? (previousStatus as SummaryMemory["estado"])
-      : "Interesado"),
+    estado: autoStatus,
   };
 
   if (OPENAI_API_KEY) {
@@ -572,7 +574,13 @@ NECESIDAD PREVIA:
 ${previousNeed || "Sin necesidad detectada"}
 
 ESTADO PREVIO:
-${previousStatus || "Interesado"}
+${previousStatus || "Nuevo"}
+
+VECES DE CONTACTO:
+${Number(contacto?.veces_contacto || 1)}
+
+ESTADO AUTOMÁTICO SUGERIDO:
+${autoStatus}
 
 MENSAJE NUEVO DEL CLIENTE:
 ${userMessage}
@@ -590,9 +598,16 @@ Devuelve únicamente un objeto JSON puro con esta estructura exacta:
 
 REGLAS:
 - estado debe ser solo uno de estos valores:
+Nuevo
 Interesado
 Evaluando
 Llamar
+Cliente
+Perdido
+- NO cambies a Cliente automáticamente.
+- NO cambies a Perdido automáticamente.
+- Usa normalmente Nuevo, Interesado, Evaluando o Llamar.
+- Si el estado previo ya era Cliente o Perdido, consérvalo.
 - No pongas markdown.
 - No pongas texto antes o después del JSON.
 - Resume de forma compacta y útil para ventas.
@@ -620,13 +635,28 @@ Llamar
         parsed.resumen !== undefined &&
         parsed.ultimo_tema !== undefined &&
         parsed.necesidad !== undefined &&
-        ["Interesado", "Evaluando", "Llamar"].includes(parsed.estado)
+        ["Nuevo", "Interesado", "Evaluando", "Llamar", "Cliente", "Perdido"].includes(
+          parsed.estado
+        )
       ) {
-        memory = parsed as SummaryMemory;
+        memory = {
+          resumen: String(parsed.resumen || previousSummary),
+          ultimo_tema: String(parsed.ultimo_tema || previousTopic),
+          necesidad: String(parsed.necesidad || previousNeed),
+          estado: parsed.estado as SummaryMemory["estado"],
+        };
       }
     } catch (error) {
       console.error("updateContactSummaryWithAI error:", error);
     }
+  }
+
+  // Protege estados manuales
+  if (previousStatus === "Cliente" || previousStatus === "Perdido") {
+    memory.estado = previousStatus as SummaryMemory["estado"];
+  } else if (memory.estado === "Cliente" || memory.estado === "Perdido") {
+    // Evita que la IA los asigne sola
+    memory.estado = autoStatus;
   }
 
   const { error } = await supabase
@@ -643,6 +673,25 @@ Llamar
     console.error("updateContactSummaryWithAI supabase error:", error.message);
   }
 }
+
+
+function getAutoStatusByContactCount(
+  vecesContacto: number,
+  currentStatus?: string | null
+): "Nuevo" | "Interesado" | "Evaluando" | "Llamar" | "Cliente" | "Perdido" {
+  const normalized = String(currentStatus || "").trim();
+
+  // Estados manuales: no los sobreescribas automáticamente
+  if (normalized === "Cliente" || normalized === "Perdido") {
+    return normalized as "Cliente" | "Perdido";
+  }
+
+  if (vecesContacto <= 1) return "Nuevo";
+  if (vecesContacto <= 3) return "Interesado";
+  if (vecesContacto === 4) return "Evaluando";
+  return "Llamar";
+}
+
 
 function safeJsonParse(value: string): Record<string, any> | null {
   try {
