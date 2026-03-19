@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import {
   Users,
   UserPlus,
@@ -7,30 +8,57 @@ import {
   MessageSquare,
   ArrowUpRight,
 } from "lucide-react";
-import { getLeadsFromSheet } from "@/lib/googleSheets";
+import { supabaseServer } from "@/lib/supabase/server";
+
+type Contacto = {
+  id: string;
+  whatsapp: string;
+  nombre: string | null;
+  resumen: string | null;
+  ultimo_tema: string | null;
+  necesidad: string | null;
+  estado: string | null;
+  veces_contacto: number | null;
+  created_at: string | null;
+  ultima_respuesta: string | null;
+};
 
 export default async function DashboardPage() {
-  const leads = await getLeadsFromSheet();
+  const { data, error } = await supabaseServer
+    .from("contactos")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return (
+      <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
+        Error cargando contactos: {error.message}
+      </div>
+    );
+  }
+
+  const leads: Contacto[] = data ?? [];
 
   const totalLeads = leads.length;
+
   const nuevos = leads.filter(
-    (lead) => lead.estado?.toLowerCase() === "nuevo"
+    (lead) => (lead.estado || "").toLowerCase() === "nuevo"
   ).length;
 
   const seguimiento = leads.filter((lead) =>
-    ["seguimiento", "interesado", "interesadoo"].includes(
-      lead.estado?.toLowerCase() || ""
+    ["seguimiento", "interesado", "interesadoo", "evaluando"].includes(
+      (lead.estado || "").toLowerCase()
     )
   ).length;
 
   const cerrados = leads.filter((lead) =>
-    ["cerrado", "ganado", "cliente"].includes(lead.estado?.toLowerCase() || "")
+    ["cerrado", "ganado", "cliente"].includes((lead.estado || "").toLowerCase())
   ).length;
 
   const recientes = [...leads].slice(0, 5);
 
   const necesidadesMap = leads.reduce<Record<string, number>>((acc, lead) => {
-    const key = lead.necesidadDetectada?.trim() || "Sin clasificar";
+    const key = lead.necesidad?.trim() || "Sin clasificar";
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
@@ -38,6 +66,10 @@ export default async function DashboardPage() {
   const necesidadesTop = Object.entries(necesidadesMap)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
+
+  const maxNecesidad = necesidadesTop.length
+    ? Math.max(...necesidadesTop.map((n) => n[1]))
+    : 1;
 
   return (
     <div className="space-y-8">
@@ -121,7 +153,7 @@ export default async function DashboardPage() {
               <thead className="bg-gray-50 text-left text-gray-700">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Nombre</th>
-                  <th className="px-4 py-3 font-semibold">Teléfono</th>
+                  <th className="px-4 py-3 font-semibold">WhatsApp</th>
                   <th className="px-4 py-3 font-semibold">Estado</th>
                   <th className="px-4 py-3 font-semibold">Necesidad</th>
                 </tr>
@@ -130,23 +162,23 @@ export default async function DashboardPage() {
                 {recientes.length > 0 ? (
                   recientes.map((lead) => (
                     <tr
-                      key={lead.telefono}
+                      key={lead.id}
                       className="border-t border-gray-100 text-black"
                     >
                       <td className="px-4 py-3 font-medium">
                         <Link
-                          href={`/leads/${lead.telefono}`}
+                          href={`/leads/${lead.whatsapp}`}
                           className="hover:underline"
                         >
                           {lead.nombre || "Sin nombre"}
                         </Link>
                       </td>
-                      <td className="px-4 py-3">{lead.telefono}</td>
+                      <td className="px-4 py-3">{lead.whatsapp}</td>
                       <td className="px-4 py-3">
                         <StatusBadge status={lead.estado || "Sin estado"} />
                       </td>
                       <td className="px-4 py-3">
-                        {lead.necesidadDetectada || "Sin clasificar"}
+                        {lead.necesidad || "Sin clasificar"}
                       </td>
                     </tr>
                   ))
@@ -186,11 +218,7 @@ export default async function DashboardPage() {
                       <div
                         className="h-2 rounded-full bg-gray-900"
                         style={{
-                          width: `${Math.max(
-                            12,
-                            (count / Math.max(...necesidadesTop.map((n) => n[1]))) *
-                              100
-                          )}%`,
+                          width: `${Math.max(12, (count / maxNecesidad) * 100)}%`,
                         }}
                       />
                     </div>
@@ -253,7 +281,7 @@ function StatCard({
   title: string;
   value: number;
   helper: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }) {
   return (
     <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
@@ -280,7 +308,9 @@ function StatusBadge({ status }: { status: string }) {
 
   if (["nuevo"].includes(normalized)) {
     classes += "bg-blue-50 text-blue-700 ring-blue-200";
-  } else if (["seguimiento", "interesado", "interesadoo"].includes(normalized)) {
+  } else if (
+    ["seguimiento", "interesado", "interesadoo", "evaluando"].includes(normalized)
+  ) {
     classes += "bg-amber-50 text-amber-700 ring-amber-200";
   } else if (["cerrado", "ganado", "cliente"].includes(normalized)) {
     classes += "bg-emerald-50 text-emerald-700 ring-emerald-200";
