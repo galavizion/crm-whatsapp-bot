@@ -5,4 +5,4 @@ export default function WhatsAppAdminPage() {
       <p className="text-slate-500 mt-2">Próximamente.</p>
     </div>
   );
-}
+} 
