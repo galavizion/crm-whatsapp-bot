@@ -1,7 +1,12 @@
 "use server";
 
-import { supabaseServer } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function saveLeadNotes(formData: FormData) {
   const telefono = String(formData.get("telefono") || "").trim();
@@ -11,7 +16,7 @@ export async function saveLeadNotes(formData: FormData) {
     throw new Error("Teléfono no válido.");
   }
 
-  const { error } = await supabaseServer
+  const { error } = await supabase
     .from("contactos")
     .update({ notas })
     .eq("whatsapp", telefono);
@@ -21,7 +26,6 @@ export async function saveLeadNotes(formData: FormData) {
     throw new Error("No se pudo actualizar la nota.");
   }
 
-  // refresca vistas
   revalidatePath("/leads");
   revalidatePath(`/leads/${telefono}`);
 }
