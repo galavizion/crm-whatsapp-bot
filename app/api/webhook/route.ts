@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
     // =========================
     const { data: business } = await supabase
       .from("businesses")
-      .select("name, slogan")
+      .select("name, slogan, descripcion, servicios, instrucciones_bot, tono_bot")
       .eq("id", businessId)
       .maybeSingle();
 
