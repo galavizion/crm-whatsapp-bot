@@ -2,14 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Bot, LogOut, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { LayoutDashboard, Users, Bot, LogOut, Menu, X, Building2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
-const links = [
+const GOD_EMAIL = "rene.galaviz@gmail.com";
+
+const baseLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/leads", label: "Leads", icon: Users },
+  { href: "/admin/bot", label: "Config Bot", icon: Bot },
+];
+
+const godLinks = [
+  { href: "/god/negocios", label: "Negocios", icon: Building2 },
 ];
 
 export default function Sidebar() {
@@ -17,6 +24,14 @@ export default function Sidebar() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [isGod, setIsGod] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email === GOD_EMAIL) setIsGod(true);
+    });
+  }, []);
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -25,6 +40,8 @@ export default function Sidebar() {
     router.push("/login");
     router.refresh();
   }
+
+  const links = isGod ? [...baseLinks, ...godLinks] : baseLinks;
 
   const NavContent = () => (
     <div className="flex h-full flex-col">
@@ -64,6 +81,9 @@ export default function Sidebar() {
                 <Icon size={18} />
               </span>
               <span>{link.label}</span>
+              {link.href.startsWith("/god") && (
+                <span className="ml-auto text-[10px] bg-white/10 px-1.5 py-0.5 rounded-full text-white/60">GOD</span>
+              )}
             </Link>
           );
         })}
@@ -94,7 +114,6 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* MOBILE top bar */}
       <div className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-[#2f2944] px-4 py-3 lg:hidden border-b border-white/10">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
@@ -102,15 +121,11 @@ export default function Sidebar() {
           </div>
           <span className="text-base font-bold text-white">Ranking CRM</span>
         </div>
-        <button
-          onClick={() => setOpen(!open)}
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white"
-        >
+        <button onClick={() => setOpen(!open)} className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white">
           {open ? <X size={18} /> : <Menu size={18} />}
         </button>
       </div>
 
-      {/* MOBILE drawer */}
       {open && (
         <div className="fixed inset-0 z-30 lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
@@ -120,7 +135,6 @@ export default function Sidebar() {
         </div>
       )}
 
-      {/* DESKTOP sidebar */}
       <aside className="hidden lg:flex min-h-screen w-72 flex-col border-r border-white/10 bg-[#2f2944] px-5 py-6 text-white shadow-[0_10px_40px_rgba(53,37,78,0.22)]">
         <NavContent />
       </aside>
