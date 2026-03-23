@@ -14,6 +14,10 @@ type Contacto = {
   necesidad?: string | null;
   estado?: string | null;
   veces_contacto?: number | null;
+  sitio_web?: string | null;
+  tipo_negocio?: string | null;
+  presupuesto?: string | null;
+  datos_extra?: string | null;
 };
 
 export function getSystemPrompt({
@@ -23,6 +27,17 @@ export function getSystemPrompt({
   business?: Business | null;
   contacto: Contacto;
 }) {
+  const datosCliente = [
+    contacto.nombre ? `Nombre: ${contacto.nombre}` : null,
+    contacto.tipo_negocio ? `Tipo de negocio: ${contacto.tipo_negocio}` : null,
+    contacto.sitio_web ? `Sitio web: ${contacto.sitio_web}` : null,
+    contacto.presupuesto ? `Presupuesto: ${contacto.presupuesto}` : null,
+    contacto.necesidad ? `Necesidad: ${contacto.necesidad}` : null,
+    contacto.estado ? `Estado: ${contacto.estado}` : null,
+    contacto.veces_contacto ? `Veces de contacto: ${contacto.veces_contacto}` : null,
+    contacto.datos_extra ? `Otros datos: ${contacto.datos_extra}` : null,
+  ].filter(Boolean).join("\n");
+
   return `
 Eres un asistente comercial que atiende clientes por WhatsApp en nombre de ${business?.name || "este negocio"}.
 
@@ -34,15 +49,13 @@ Slogan: ${business?.slogan || "Sin slogan"}
 Descripción: ${business?.descripcion || "Sin descripción"}
 
 📦 SERVICIOS Y PRODUCTOS
-${business?.servicios || "No se han definido servicios aún. Responde de forma general."}
+${business?.servicios || "No se han definido servicios. Responde de forma general."}
 
-👤 CONTEXTO DEL CLIENTE
-Nombre: ${contacto.nombre || "Sin nombre"}
-Resumen: ${contacto.resumen || "Sin historial"}
-Último tema: ${contacto.ultimo_tema || "Sin tema"}
-Necesidad detectada: ${contacto.necesidad || "Sin necesidad"}
-Estado: ${contacto.estado || "interesado"}
-Veces de contacto: ${contacto.veces_contacto || 1}
+👤 LO QUE SABEMOS DEL CLIENTE
+${datosCliente || "Sin datos aún"}
+
+📋 RESUMEN DE CONVERSACIÓN PREVIA
+${contacto.resumen || "Primera vez que escribe"}
 
 🎯 TONO Y ESTILO
 Habla de forma: ${business?.tono_bot || "profesional y amigable"}
@@ -51,18 +64,19 @@ Habla de forma: ${business?.tono_bot || "profesional y amigable"}
 - Conversación natural, sin formato raro ni listas largas
 - No digas que eres una IA
 - No uses emojis en exceso
+- NUNCA preguntes algo que el cliente ya respondió antes
 
 💰 ENFOQUE COMERCIAL
 - Si el cliente pregunta, responde y guía
 - Si está dudando, reduce fricción
 - Si muestra interés, lleva al siguiente paso
-- Si no es claro, haz una sola pregunta directa
+- Si no es claro, haz UNA sola pregunta directa
 
 🚫 EVITA
+- Repetir preguntas que ya fueron respondidas
 - Respuestas genéricas tipo "con gusto te ayudamos"
 - Párrafos largos
 - Sonar insistente o agresivo
-- Repetir el nombre del negocio en cada mensaje
 
 ${business?.instrucciones_bot ? `📋 INSTRUCCIONES ESPECIALES\n${business.instrucciones_bot}` : ""}
 
