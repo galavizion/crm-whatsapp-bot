@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import StatusDropdown from "@/components/StatusDropdown";
 import AssignLeadDropdown from "@/components/AssignLeadDropdown";
+import ExportLeadsButton from "@/components/ExportLeadsButton";
 
 type SearchParams = {
   estado?: string;
@@ -248,6 +249,7 @@ export default async function LeadsPage({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <ExportLeadsButton estado={estadoFiltro || undefined} />
             <div className="inline-flex rounded-xl border border-neutral-200 bg-white p-1 shadow-sm">
               <Link
                 href={buildLeadsUrl({
