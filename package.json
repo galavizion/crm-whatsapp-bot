@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-ranking",
+   "name": "prospekto",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -30,4 +30,5 @@
     "tailwindcss": "^4",
     "typescript": "^5"
   }
+  
 }
