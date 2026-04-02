@@ -42,12 +42,8 @@ export async function POST(req: NextRequest) {
     const from = message.from;
     const messageId = message.id;
     const text = message.text?.body || "";
-    
-    // ✅ NUEVO: Extraer nombre del perfil de WhatsApp
-    const profileName = value?.contacts?.[0]?.profile?.name || null;
 
     console.log("📞 phoneNumberId:", phoneNumberId);
-    console.log("👤 Nombre del perfil:", profileName);
     console.log("💬 Mensaje recibido:", text);
 
     // 1. MAPEAR A NEGOCIO
@@ -120,34 +116,16 @@ export async function POST(req: NextRequest) {
 
       const { data: nuevo } = await supabase
         .from("contactos")
-        .insert({ 
-          whatsapp: from, 
-          business_id: businessId, 
-          estado: "interesado", 
-          veces_contacto: 1, 
-          assigned_user_id: assignedUserId,
-          nombre: profileName  // ✅ NUEVO: Guardar nombre del perfil
-        })
+        .insert({ whatsapp: from, business_id: businessId, estado: "interesado", veces_contacto: 1, assigned_user_id: assignedUserId })
         .select()
         .maybeSingle();
 
       contacto = nuevo;
-      console.log("👤 Contacto creado:", profileName ?? "sin nombre", "| asignado a:", assignedUserId ?? "sin asignar");
+      console.log("👤 Contacto creado, asignado a:", assignedUserId ?? "sin asignar");
     } else {
-      // ✅ MEJORADO: Actualizar nombre si viene del perfil y no lo tenemos
-      const updateData: any = { 
-        veces_contacto: (contacto.veces_contacto || 0) + 1 
-      };
-      
-      // Solo actualizar nombre si viene del perfil y el contacto no tiene nombre o tiene "Desconocido"
-      if (profileName && (!contacto.nombre || contacto.nombre === 'Desconocido')) {
-        updateData.nombre = profileName;
-        console.log("📝 Actualizando nombre a:", profileName);
-      }
-      
       await supabase
         .from("contactos")
-        .update(updateData)
+        .update({ veces_contacto: (contacto.veces_contacto || 0) + 1 })
         .eq("id", contacto.id);
     }
 
@@ -199,8 +177,7 @@ export async function POST(req: NextRequest) {
           ultimo_tema: memory.ultimo_tema,
           necesidad: memory.necesidad,
           estado: memory.estado,
-          // ✅ MEJORADO: Priorizar nombre del perfil > nombre extraído por IA > nombre actual
-          nombre: profileName || memory.nombre || contacto.nombre || null,
+          nombre: memory.nombre || contacto.nombre || null,
           sitio_web: memory.sitio_web || null,
           tipo_negocio: memory.tipo_negocio || null,
           presupuesto: memory.presupuesto || null,
