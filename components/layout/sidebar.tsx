@@ -11,6 +11,7 @@ import {
   Menu 
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
+import Image from "next/image";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "",
@@ -38,8 +39,15 @@ export default function Sidebar() {
       {/* Mobile Header */}
       <div className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-[#2f2944] px-4 py-3 lg:hidden border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
-            <Bot className="text-white" size={18} />
+          {/* ✅ Logo en mobile */}
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 overflow-hidden p-1">
+            <Image
+              src="/Prospekt-app.png"
+              alt="Prospekto"
+              width={32}
+              height={32}
+              className="object-contain"
+            />
           </div>
           <span className="text-base font-bold text-white">Prospekto</span>
         </div>
@@ -54,8 +62,15 @@ export default function Sidebar() {
           {/* Header Card */}
           <div className="rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(140,122,198,0.30)_0%,rgba(200,79,146,0.22)_100%)] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10">
-                <Bot className="text-white" size={22} />
+              {/* ✅ Logo en desktop */}
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10 overflow-hidden p-2">
+                <Image
+                  src="/Prospekt-app.png"
+                  alt="Prospekto"
+                  width={40}
+                  height={40}
+                  className="object-contain"
+                />
               </div>
               <div>
                 <p className="text-[11px] uppercase tracking-[0.28em] text-white/60">Sistema</p>
@@ -163,7 +178,6 @@ export default function Sidebar() {
               </p>
             </div>
 
-            {/* ✅ Botón de cerrar sesión con funcionalidad */}
             <button 
               onClick={handleLogout}
               className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white disabled:opacity-50"

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -41,12 +42,27 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] px-6">
       <div className="w-full max-w-md rounded-[32px] border border-white/30 bg-white/90 p-8 shadow-[0_25px_70px_rgba(51,32,77,0.28)] backdrop-blur">
-        <div className="mb-8">
+        
+        {/* ✅ Logo agregado */}
+        <div className="mb-6 flex justify-center">
+          <div className="rounded-2xl bg-white p-3 shadow-lg ring-1 ring-black/5">
+            <Image
+              src="/Prospekt-app.png"
+              alt="Prospekto"
+              width={64}
+              height={64}
+              priority
+              className="h-16 w-16 object-contain"
+            />
+          </div>
+        </div>
+
+        <div className="mb-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#7d679f]">
             Sistema
           </p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
-            Iniciar sesión
+            Prospekto
           </h1>
           <p className="mt-2 text-sm text-slate-600">
             Accede a tu panel para revisar leads, conversaciones y seguimiento comercial.
