@@ -25,7 +25,7 @@ export type MemoryExtraction = {
   resumen: string;
   ultimo_tema: string;
   necesidad: string;
-  estado: "interesado" | "llamar";
+  estado: "interesado" | "llamar" | "contactado" | "cliente" | "perdido";
   nombre: string;
   sitio_web: string;
   tipo_negocio: string;
@@ -61,7 +61,7 @@ Datos previos del cliente:
 - Resumen previo: ${contacto.resumen || "Sin historial"}
 - Último tema: ${contacto.ultimo_tema || "Sin tema"}
 - Necesidad: ${contacto.necesidad || "Sin necesidad"}
-- Estado actual: ${contacto.estado || "interesado"}
+- Estado: ${contacto.estado || "interesado"}
 - Datos extra: ${contacto.datos_extra || "Ninguno"}
 
 Nuevo mensaje del cliente:
@@ -74,41 +74,21 @@ Devuelve SOLO este JSON (actualiza los campos con nueva info, conserva lo que ya
 {
   "resumen": "historial acumulable breve",
   "ultimo_tema": "tema corto del último mensaje",
-  "necesidad": "qué quiere el cliente (servicio específico que busca)",
+  "necesidad": "qué quiere el cliente",
   "estado": "interesado",
   "nombre": "nombre si lo mencionó, sino conserva el anterior",
-  "sitio_web": "URL solo si la mencionó explícitamente",
-  "tipo_negocio": "tipo de negocio si lo mencionó",
-  "presupuesto": "presupuesto solo si el cliente lo mencionó espontáneamente",
+  "sitio_web": "URL si la mencionó, sino conserva la anterior",
+  "tipo_negocio": "tipo de negocio si lo mencionó, sino conserva el anterior",
+  "presupuesto": "presupuesto si lo mencionó, sino conserva el anterior",
   "datos_extra": "cualquier otro dato relevante acumulado"
 }
 
-🎯 REGLAS CRÍTICAS PARA EL CAMPO "estado":
-Solo hay DOS estados posibles: "interesado" o "llamar"
-
-Usa "llamar" cuando:
-- Cliente pide explícitamente que lo llamen: "llámenme", "llámame", "me pueden llamar"
-- Cliente acepta que lo llamen: "sí, está bien", "dale", "perfecto"
-- Cliente deja su teléfono para que lo contacten
-- Cliente pregunta cuándo lo van a llamar
-
-Usa "interesado" en todos los demás casos:
-- Pregunta información
-- Muestra interés pero no pide llamada
-- Está en conversación inicial
-- Cualquier otro escenario
-
-IMPORTANTE: Los estados "contactado", "cliente" y "perdido" NO existen en el sistema automático. El vendedor los asigna manualmente.
-
-📋 OTRAS REGLAS IMPORTANTES:
-- "presupuesto": Solo captura si el cliente lo menciona por su cuenta (ej: "tengo $10,000", "mi presupuesto es de..."). NUNCA asumas o inventes un presupuesto.
-- "sitio_web": Solo captura si el cliente menciona explícitamente su URL (ej: "miempresa.com", "www.negocio.mx")
-- "nombre": Captura si se presenta o lo menciona
-- "tipo_negocio": Captura si dice a qué se dedica (ej: "tengo una tienda de ropa", "soy abogado")
-- "necesidad": El servicio o producto específico que busca (ej: "manejo de redes sociales", "diseño de logo", "página web")
-- "datos_extra": Información relevante que no cabe en otros campos
+Reglas:
+- "estado" solo puede ser: interesado, llamar, contactado, cliente, perdido
 - Conserva datos previos si no se mencionaron de nuevo
 - "datos_extra" es acumulable, agrega info nueva sin borrar la anterior
+- Si el cliente mencionó su sitio web, ponlo en "sitio_web"
+- Si mencionó su nombre, ponlo en "nombre"
 `;
 
   try {
@@ -116,10 +96,7 @@ IMPORTANTE: Los estados "contactado", "cliente" y "perdido" NO existen en el sis
       model: OPENAI_MODEL,
       temperature: 0.1,
       messages: [
-        { 
-          role: "system", 
-          content: "Eres un extractor de datos experto en CRM. Clasificas leads en dos estados: 'interesado' o 'llamar'. Solo capturas datos que el cliente menciona espontáneamente. Devuelve solo JSON válido, sin markdown." 
-        },
+        { role: "system", content: "Eres un extractor de datos. Devuelve solo JSON válido, sin markdown." },
         { role: "user", content: prompt },
       ],
     });
@@ -158,9 +135,12 @@ function fallback(contacto: Contacto, incomingMessage: string): MemoryExtraction
   };
 }
 
-export function normalizeEstado(estado: string): "interesado" | "llamar" {
+export function normalizeEstado(estado: string): "interesado" | "llamar" | "contactado" | "cliente" | "perdido" {
   const v = String(estado || "").toLowerCase().trim();
   if (v === "llamar") return "llamar";
+  if (v === "contactado") return "contactado";
+  if (v === "cliente") return "cliente";
+  if (v === "perdido") return "perdido";
   return "interesado";
 }
 
