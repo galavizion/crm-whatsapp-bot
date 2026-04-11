@@ -10,6 +10,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { RefreshButton } from "@/components/RefreshButton";
+import { AutoRefreshOnFocus } from "@/components/AutoRefreshOnFocus";
 
 type Contacto = {
   id: string;
@@ -134,6 +135,9 @@ const isAdmin = role === "admin";
 
   return (
     <main className="min-h-screen bg-neutral-50">
+      {/* ✅ NUEVO: Auto-refresh al volver a la pestaña */}
+      <AutoRefreshOnFocus />
+      
       <div className="mx-auto max-w-7xl px-4 py-6 md:px-6 lg:px-8">
         <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
@@ -158,7 +162,7 @@ const isAdmin = role === "admin";
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            {/* ✅ NUEVO: Botón de actualización manual */}
+            {/* ✅ BOTÓN MEJORADO: Azul con gradiente y sombra */}
             <RefreshButton />
             
             <Link
