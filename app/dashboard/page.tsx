@@ -9,6 +9,7 @@ import {
   XCircle,
   ArrowUpRight,
 } from "lucide-react";
+import { RefreshButton } from "@/components/RefreshButton";
 
 type Contacto = {
   id: string;
@@ -156,10 +157,13 @@ const isAdmin = role === "admin";
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            {/* ✅ NUEVO: Botón de actualización manual */}
+            <RefreshButton />
+            
             <Link
               href="/leads"
-              className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm transition hover:bg-neutral-100"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm transition hover:bg-neutral-100"
             >
               Ver lista
               <ArrowUpRight className="h-4 w-4" />
