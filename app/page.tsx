@@ -582,7 +582,7 @@ export default function LandingPage() {
               { icon: "🎯", title: "Extracción automática de datos", desc: "Nombre, necesidad, presupuesto y estado — extraídos de la conversación sin formularios." },
               { icon: "⚡", title: "Asignación round-robin", desc: "Cada lead se asigna al siguiente vendedor disponible. Justo, automático y sin conflictos internos." },
               { icon: "📊", title: "CRM visual en tiempo real", desc: "Pipeline, lista y detalle de cada lead. Filtros por estado, historial completo y exportación CSV." },
-              { icon: "🔔", title: "Multi-negocio y multi-vendedor", desc: "Maneja 2+ cuentas de WhatsApp con equipos separados desde un solo dashboard." },
+              { icon: "👥", title: "1 admin + hasta 5 vendedores", desc: "Un admin configura el sistema y hasta 5 vendedores reciben y gestionan sus leads asignados, cada uno con su propio acceso." },
               { icon: "💰", title: "Costo ridículamente bajo", desc: "~$0.38 USD al mes con 1,000 conversaciones. Sin planes de $99/mes que nadie usa al 100%." },
             ].map((f) => (
               <div key={f.title} className="feat-card">
@@ -597,28 +597,61 @@ export default function LandingPage() {
 
       {/* ─── PRICING ─── */}
       <section id="pricing" style={{ padding: "72px 24px 96px" }}>
-        <div style={{ maxWidth: 500, margin: "0 auto", textAlign: "center" }}>
+        <div style={{ maxWidth: 520, margin: "0 auto", textAlign: "center" }}>
           <div className="sec-label" style={{ marginBottom: 12 }}>Precio</div>
-          <h2 className="serif" style={{ fontSize: "clamp(26px, 4vw, 44px)", fontWeight: 400, color: "#1a2035", marginBottom: 36 }}>
-            Sin sorpresas en la factura
+          <h2 className="serif" style={{ fontSize: "clamp(26px, 4vw, 44px)", fontWeight: 400, color: "#1a2035", marginBottom: 8 }}>
+            Precio de lanzamiento
           </h2>
-          <div className="price-card">
-            <div style={{ fontSize: 13, color: "#00a884", fontWeight: 600, marginBottom: 8 }}>Pago por uso real</div>
-            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 6, marginBottom: 4 }}>
-              <span className="serif" style={{ fontSize: "clamp(40px, 10vw, 60px)", color: "#1a2035", fontWeight: 400 }}>$0.38</span>
-              <span style={{ fontSize: 16, color: "#9ca3af" }}>USD / mes</span>
-            </div>
-            <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 32 }}>Con 1,000 conversaciones mensuales</div>
+          <p style={{ fontSize: 15, color: "#6b7280", marginBottom: 32 }}>
+            Sé de los primeros en probar Prospekto y bloquea este precio para siempre.
+          </p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left", marginBottom: 32 }}>
+          <div className="price-card" style={{ position: "relative" }}>
+            {/* Badge lanzamiento */}
+            <div style={{
+              position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)",
+              background: "linear-gradient(135deg, #7c3aed, #00a884)",
+              color: "#fff", borderRadius: 99, padding: "5px 18px",
+              fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
+              whiteSpace: "nowrap", boxShadow: "0 4px 14px rgba(124,58,237,0.35)"
+            }}>
+              🚀 EARLY ACCESS — PRECIO BLOQUEADO
+            </div>
+
+            <div style={{ marginTop: 12 }}>
+              {/* Precio tachado */}
+              <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 4 }}>
+                Precio regular: <span style={{ textDecoration: "line-through" }}>$29 USD/mes</span>
+              </div>
+
+              {/* Precio actual */}
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 6, marginBottom: 4 }}>
+                <span className="serif" style={{ fontSize: "clamp(40px, 10vw, 62px)", color: "#1a2035", fontWeight: 400 }}>$0.38</span>
+                <span style={{ fontSize: 16, color: "#9ca3af" }}>USD / mes</span>
+              </div>
+              <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 8 }}>Con 1,000 conversaciones · pago por uso real</div>
+
+              {/* Urgencia */}
+              <div style={{
+                background: "rgba(124,58,237,0.07)", border: "1px solid rgba(124,58,237,0.15)",
+                borderRadius: 10, padding: "10px 16px", fontSize: 13, color: "#7c3aed",
+                fontWeight: 500, marginBottom: 28
+              }}>
+                ⏳ Solo para los primeros negocios que se registren — precio fijo para siempre
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left", marginBottom: 28 }}>
               {[
                 "Bot de WhatsApp con IA incluido",
                 "CRM completo con pipeline visual",
-                "Hasta 4 vendedores simultáneos",
-                "2+ cuentas de WhatsApp",
+                "1 admin + hasta 5 vendedores",
+                "1 número de WhatsApp Business",
                 "Exportación CSV de leads",
                 "Historial completo de conversaciones",
                 "Dashboard en tiempo real",
+                "Notificación WhatsApp al vendedor asignado",
+                "Soporte directo con el equipo fundador",
               ].map(f => (
                 <div key={f} style={{ fontSize: 14, color: "#374151" }}>
                   <span className="check">✓</span>{f}
@@ -627,9 +660,11 @@ export default function LandingPage() {
             </div>
 
             <button className="btn-primary" style={{ width: "100%", fontSize: 16, padding: "16px", borderRadius: 14 }} onClick={() => router.push("/login")}>
-              Empezar ahora — es gratis →
+              Quiero este precio — entrar gratis →
             </button>
-            <div style={{ marginTop: 14, fontSize: 12, color: "#9ca3af" }}>Sin tarjeta de crédito para comenzar</div>
+            <div style={{ marginTop: 12, fontSize: 12, color: "#9ca3af" }}>
+              Sin tarjeta de crédito · Cancela cuando quieras
+            </div>
           </div>
         </div>
       </section>
