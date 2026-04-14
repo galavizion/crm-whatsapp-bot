@@ -92,7 +92,12 @@ export async function POST(req: NextRequest) {
       .eq("whatsapp", from)
       .maybeSingle();
 
+    let isNewContact = false;
+    let sellerWhatsapp: string | null = null;
+
     if (!contacto) {
+      isNewContact = true;
+
       // Round robin sellers
       const { data: sellers } = await supabase
         .from("business_users")
@@ -116,15 +121,24 @@ export async function POST(req: NextRequest) {
         counts.sort((a, b) => a.count - b.count);
         assignedUserId = counts[0].user_id;
         console.log(`👥 Auto-asignado a seller con ${counts[0].count} leads`);
+
+        // Obtener WhatsApp del seller asignado para notificación
+        const { data: sellerUser } = await supabase
+          .from("business_users")
+          .select("whatsapp")
+          .eq("user_id", assignedUserId)
+          .eq("business_id", businessId)
+          .maybeSingle();
+        sellerWhatsapp = sellerUser?.whatsapp || null;
       }
 
       const { data: nuevo } = await supabase
         .from("contactos")
-        .insert({ 
-          whatsapp: from, 
-          business_id: businessId, 
-          estado: "interesado", 
-          veces_contacto: 1, 
+        .insert({
+          whatsapp: from,
+          business_id: businessId,
+          estado: "interesado",
+          veces_contacto: 1,
           assigned_user_id: assignedUserId,
           nombre: profileName  // ✅ NUEVO: Guardar nombre del perfil
         })
@@ -184,8 +198,10 @@ export async function POST(req: NextRequest) {
     });
 
     // 8. ACTUALIZAR MEMORIA
+    let memory: Awaited<ReturnType<typeof extractMemory>> | null = null;
+
     if (contacto) {
-      const memory = await extractMemory({
+      memory = await extractMemory({
         business,
         contacto,
         incomingMessage: text,
@@ -210,6 +226,35 @@ export async function POST(req: NextRequest) {
         .eq("id", contacto.id);
 
       console.log("🧠 Memoria actualizada:", memory.estado);
+    }
+
+    // 8.5. NOTIFICAR AL VENDEDOR (solo leads nuevos con WhatsApp registrado)
+    if (isNewContact && sellerWhatsapp && contacto) {
+      const nombre = profileName || memory?.nombre || "Sin nombre";
+      const necesidad = memory?.necesidad || "No especificada";
+      const presupuesto = memory?.presupuesto || "No especificado";
+      const cleanNumber = sellerWhatsapp.replace(/\D/g, "");
+
+      const notifMsg =
+        `🔔 Nuevo lead asignado a ti\n\n` +
+        `Nombre: ${nombre}\n` +
+        `Necesidad: ${necesidad}\n` +
+        `Presupuesto: ${presupuesto}\n` +
+        `Estado: interesado\n\n` +
+        `Ver lead → https://prospekto.mx/leads/${contacto.id}`;
+
+      const notifResult = await sendWhatsAppText({
+        accessToken,
+        phoneNumberId,
+        to: cleanNumber,
+        body: notifMsg,
+      });
+
+      if (notifResult.ok) {
+        console.log("🔔 Notificación enviada al vendedor:", cleanNumber);
+      } else {
+        console.warn("⚠️ No se pudo notificar al vendedor:", notifResult.error);
+      }
     }
 
     // 9. ENVIAR WHATSAPP
