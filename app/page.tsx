@@ -583,7 +583,7 @@ export default function LandingPage() {
               { icon: "⚡", title: "Asignación round-robin", desc: "Cada lead se asigna al siguiente vendedor disponible. Justo, automático y sin conflictos internos." },
               { icon: "📊", title: "CRM visual en tiempo real", desc: "Pipeline, lista y detalle de cada lead. Filtros por estado, historial completo y exportación CSV." },
               { icon: "👥", title: "1 admin + hasta 5 vendedores", desc: "Un admin configura el sistema y hasta 5 vendedores reciben y gestionan sus leads asignados, cada uno con su propio acceso." },
-              { icon: "💰", title: "Costo ridículamente bajo", desc: "~$0.38 USD al mes con 1,000 conversaciones. Sin planes de $99/mes que nadie usa al 100%." },
+              { icon: "💰", title: "Costo ridículamente bajo", desc: "~$699 MXN al mes con 1,000 conversaciones. Sin planes de $2999/MXN/mes que nadie usa al 100%." },
             ].map((f) => (
               <div key={f.title} className="feat-card">
                 <div style={{ fontSize: 28, marginBottom: 14 }}>{f.icon}</div>
