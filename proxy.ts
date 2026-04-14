@@ -37,7 +37,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // ── Redirigir si ya está autenticado ─────────────────────────────
-  if (user && (pathname === "/login" || pathname === "/")) {
+  if (user && pathname === "/login") {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/dashboard";
     return NextResponse.redirect(dashboardUrl);
