@@ -23,6 +23,7 @@ async function addSeller(formData: FormData) {
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "").trim();
   const role = String(formData.get("role") || "seller");
+  const whatsapp = String(formData.get("whatsapp") || "").trim() || null;
   if (!email || !password) return;
 
   const { data: authUser } = await supabase.auth.admin.createUser({ email, password, email_confirm: true });
@@ -33,6 +34,7 @@ async function addSeller(formData: FormData) {
     user_id: authUser.user.id,
     role,
     email,
+    whatsapp,
   });
   revalidatePath(`/god/negocios/${businessId}`);
 }
@@ -43,6 +45,16 @@ async function removeUser(formData: FormData) {
   const businessUserId = String(formData.get("businessUserId") || "");
   const businessId = String(formData.get("businessId") || "");
   await supabase.from("business_users").delete().eq("id", businessUserId);
+  revalidatePath(`/god/negocios/${businessId}`);
+}
+
+async function updateSellerWhatsapp(formData: FormData) {
+  "use server";
+  const supabase = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const businessUserId = String(formData.get("businessUserId") || "");
+  const businessId = String(formData.get("businessId") || "");
+  const whatsapp = String(formData.get("whatsapp") || "").trim() || null;
+  await supabase.from("business_users").update({ whatsapp }).eq("id", businessUserId);
   revalidatePath(`/god/negocios/${businessId}`);
 }
 
@@ -105,23 +117,47 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
             Usuarios del negocio
           </h2>
 
-          <div className="space-y-2 mb-5">
+          <div className="space-y-3 mb-5">
             {!users || users.length === 0 ? (
               <p className="text-sm text-slate-400">Sin usuarios aún.</p>
             ) : (
               users.map((u: any) => (
-                <div key={u.id} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">{u.email || "Sin email"}</p>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${u.role === "admin" ? "bg-indigo-100 text-indigo-700" : "bg-slate-200 text-slate-600"}`}>
-                      {u.role}
-                    </span>
+                <div key={u.id} className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-2">
+                  {/* Fila superior: info + borrar */}
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-slate-800">{u.email || "Sin email"}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${u.role === "admin" ? "bg-indigo-100 text-indigo-700" : "bg-slate-200 text-slate-600"}`}>
+                          {u.role}
+                        </span>
+                        {u.whatsapp
+                          ? <span className="text-xs text-emerald-600 font-medium">📱 {u.whatsapp}</span>
+                          : <span className="text-xs text-slate-400">Sin WhatsApp</span>
+                        }
+                      </div>
+                    </div>
+                    <form action={removeUser}>
+                      <input type="hidden" name="businessUserId" value={u.id} />
+                      <input type="hidden" name="businessId" value={id} />
+                      <button type="submit" className="p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </form>
                   </div>
-                  <form action={removeUser}>
+                  {/* Fila inferior: editar WhatsApp */}
+                  <form action={updateSellerWhatsapp} className="flex gap-2">
                     <input type="hidden" name="businessUserId" value={u.id} />
                     <input type="hidden" name="businessId" value={id} />
-                    <button type="submit" className="p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition">
-                      <Trash2 className="w-4 h-4" />
+                    <input
+                      name="whatsapp"
+                      type="tel"
+                      defaultValue={u.whatsapp || ""}
+                      placeholder="521234567890 (con código país, sin +)"
+                      className="flex-1 text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder:text-slate-400 bg-white"
+                    />
+                    <button type="submit" className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition whitespace-nowrap">
+                      Guardar
                     </button>
                   </form>
                 </div>
@@ -137,10 +173,13 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
               <input name="email" type="email" required placeholder="email@negocio.com" className="text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder:text-slate-400" />
               <input name="password" type="text" required placeholder="Contraseña temporal" className="text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder:text-slate-400" />
             </div>
-            <select name="role" className="text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full">
-              <option value="seller">Seller</option>
-              <option value="admin">Admin</option>
-            </select>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <select name="role" className="text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                <option value="seller">Seller</option>
+                <option value="admin">Admin</option>
+              </select>
+              <input name="whatsapp" type="tel" placeholder="521234567890 (opcional)" className="text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder:text-slate-400" />
+            </div>
             <button type="submit" className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition">
               <Plus className="w-4 h-4" />
               Agregar usuario
