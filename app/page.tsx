@@ -761,11 +761,23 @@ export default function LandingPage() {
       {/* ─── FOOTER ─── */}
       <footer style={{ borderTop: "1px solid rgba(0,0,0,0.07)", padding: "32px 24px", textAlign: "center", background: "rgba(255,255,255,0.4)" }}>
         <div className="flex items-center justify-center gap-2 mb-3">
-          <Image src="/Prospekt-.png" alt="Prospekto" width={24} height={24} className="rounded-md" />
+          <Image src="/Prospekt-icono.png" alt="Prospekto" width={24} height={24} className="rounded-md" />
           <span style={{ fontSize: 15, fontWeight: 700, color: "#1a2035" }}>PROSPEKTO</span>
         </div>
-        <div style={{ fontSize: 13, color: "#9ca3af" }}>
+        <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 12 }}>
           CRM + Bot WhatsApp para PyMEs mexicanas · {new Date().getFullYear()}
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap" }}>
+          <a href="/privacidad" style={{ fontSize: 13, color: "#9ca3af", textDecoration: "none" }}
+            onMouseEnter={e => (e.currentTarget.style.color = "#00a884")}
+            onMouseLeave={e => (e.currentTarget.style.color = "#9ca3af")}>
+            Política de Privacidad
+          </a>
+          <a href="/eliminacion-datos" style={{ fontSize: 13, color: "#9ca3af", textDecoration: "none" }}
+            onMouseEnter={e => (e.currentTarget.style.color = "#00a884")}
+            onMouseLeave={e => (e.currentTarget.style.color = "#9ca3af")}>
+            Eliminación de Datos
+          </a>
         </div>
       </footer>
     </main>
