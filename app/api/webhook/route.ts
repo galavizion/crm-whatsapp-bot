@@ -8,7 +8,7 @@ import { sendWhatsAppText } from "@/lib/ai/sendWhatsAppText";
 
 export const runtime = "nodejs";
 
-const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || "";
+const VERIFY_TOKEN = process.env.PROSPEKTO_VERIFY_TOKEN || "";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
