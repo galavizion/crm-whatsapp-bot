@@ -15,10 +15,23 @@ import {
 import { createBrowserClient } from "@supabase/ssr";
 import Image from "next/image";
 
+const GOD_EMAIL = "rene.galaviz@gmail.com";
+
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isGod, setIsGod] = useState(false);
+
+  useState(() => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    supabase.auth.getUser().then(({ data }) => {
+      setIsGod(data.user?.email === GOD_EMAIL);
+    });
+  });
 
   const isActive = (path: string) => pathname === path;
 
@@ -150,23 +163,25 @@ export default function Sidebar() {
               <span>Config Bot</span>
             </Link>
 
-            <Link
-              href="/god/negocios"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                isActive("/god/negocios")
-                  ? "bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] text-white shadow-[0_10px_25px_rgba(200,79,146,0.24)]"
-                  : "text-white/75 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
-                isActive("/god/negocios") ? "bg-white/15 text-white" : "bg-white/5 text-white/75 group-hover:bg-white/10 group-hover:text-white"
-              }`}>
-                <Building2 size={18} />
-              </span>
-              <span>Negocios</span>
-              <span className="ml-auto text-[10px] bg-white/10 px-1.5 py-0.5 rounded-full text-white/60">GOD</span>
-            </Link>
+            {isGod && (
+              <Link
+                href="/god/negocios"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                  isActive("/god/negocios")
+                    ? "bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] text-white shadow-[0_10px_25px_rgba(200,79,146,0.24)]"
+                    : "text-white/75 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
+                  isActive("/god/negocios") ? "bg-white/15 text-white" : "bg-white/5 text-white/75 group-hover:bg-white/10 group-hover:text-white"
+                }`}>
+                  <Building2 size={18} />
+                </span>
+                <span>Negocios</span>
+                <span className="ml-auto text-[10px] bg-white/10 px-1.5 py-0.5 rounded-full text-white/60">GOD</span>
+              </Link>
+            )}
           </nav>
 
           {/* Footer */}
@@ -266,22 +281,24 @@ export default function Sidebar() {
               <span>Config Bot</span>
             </Link>
 
-            <Link
-              href="/god/negocios"
-              className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                isActive("/god/negocios")
-                  ? "bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] text-white shadow-[0_10px_25px_rgba(200,79,146,0.24)]"
-                  : "text-white/75 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
-                isActive("/god/negocios") ? "bg-white/15 text-white" : "bg-white/5 text-white/75 group-hover:bg-white/10 group-hover:text-white"
-              }`}>
-                <Building2 size={18} />
-              </span>
-              <span>Negocios</span>
-              <span className="ml-auto text-[10px] bg-white/10 px-1.5 py-0.5 rounded-full text-white/60">GOD</span>
-            </Link>
+            {isGod && (
+              <Link
+                href="/god/negocios"
+                className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                  isActive("/god/negocios")
+                    ? "bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] text-white shadow-[0_10px_25px_rgba(200,79,146,0.24)]"
+                    : "text-white/75 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
+                  isActive("/god/negocios") ? "bg-white/15 text-white" : "bg-white/5 text-white/75 group-hover:bg-white/10 group-hover:text-white"
+                }`}>
+                  <Building2 size={18} />
+                </span>
+                <span>Negocios</span>
+                <span className="ml-auto text-[10px] bg-white/10 px-1.5 py-0.5 rounded-full text-white/60">GOD</span>
+              </Link>
+            )}
           </nav>
 
           {/* Footer */}
