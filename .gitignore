@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Archivos de credenciales locales
+datos en ENV*.local
+datos en ENV*.txt

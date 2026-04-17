@@ -150,7 +150,7 @@ const inputClass = "w-full text-sm border border-slate-200 rounded-xl px-4 py-3 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
-      <h2 className="font-semibold text-slate-800 text-sm uppercase tracking-wide text-slate-500">{title}</h2>
+      <h2 className="font-semibold  text-sm uppercase tracking-wide text-slate-800">{title}</h2>
       {children}
     </div>
   );

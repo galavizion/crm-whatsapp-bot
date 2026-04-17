@@ -8,7 +8,10 @@ import { sendWhatsAppText } from "@/lib/ai/sendWhatsAppText";
 
 export const runtime = "nodejs";
 
-const VERIFY_TOKEN = process.env.PROSPEKTO_VERIFY_TOKEN || "";
+const VALID_TOKENS = [
+  process.env.PROSPEKTO_VERIFY_TOKEN || "",
+  process.env.META_VERIFY_TOKEN || "",
+].filter(Boolean);
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
@@ -20,7 +23,7 @@ export async function GET(req: NextRequest) {
   const token = url.searchParams.get("hub.verify_token");
   const challenge = url.searchParams.get("hub.challenge");
 
-  if (mode === "subscribe" && token === VERIFY_TOKEN) {
+  if (mode === "subscribe" && VALID_TOKENS.includes(token ?? "")) {
     return new NextResponse(challenge, { status: 200 });
   }
   return new NextResponse("Error de verificación", { status: 403 });
@@ -80,9 +83,26 @@ export async function POST(req: NextRequest) {
     // 3. OBTENER NEGOCIO
     const { data: business } = await supabase
       .from("businesses")
-      .select("name, slogan, descripcion, servicios, instrucciones_bot, tono_bot")
+      .select("name, slogan, descripcion, servicios, instrucciones_bot, tono_bot, status")
       .eq("id", businessId)
       .maybeSingle();
+
+    // Verificar estado del negocio
+    if (business?.status === "suspended") {
+      console.log(`⚠️ Negocio suspendido: ${business.name}`);
+      await sendWhatsAppText({
+        accessToken,
+        phoneNumberId,
+        to: from,
+        body: "⚠️ Este servicio está temporalmente suspendido.\n\nSi crees que esto es un error, contacta con nosotros.",
+      });
+      return new NextResponse("ok", { status: 200 });
+    }
+
+    if (business?.status === "cancelled") {
+      console.log(`❌ Negocio cancelado: ${business.name}`);
+      return new NextResponse("ok", { status: 200 });
+    }
 
     // 4. BUSCAR O CREAR CONTACTO
     let { data: contacto } = await supabase
