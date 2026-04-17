@@ -48,6 +48,10 @@ export default function CondicionesPage() {
 
         <div className="prose">
           <p>
+            <strong>Responsable:</strong> Rene Alejandro Galaviz Badillo · <a href="mailto:hola@prospekto.mx">hola@prospekto.mx</a>
+          </p>
+
+          <p>
             Bienvenido a <strong>Prospekto</strong>. Al registrarte y usar nuestra plataforma, aceptas las
             presentes Condiciones del Servicio. Si no estás de acuerdo con alguna parte, te pedimos no utilizar
             el servicio.

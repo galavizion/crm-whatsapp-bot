@@ -48,6 +48,10 @@ export default function PrivacidadPage() {
 
         <div className="prose">
           <p>
+            <strong>Responsable:</strong> Rene Alejandro Galaviz Badillo · <a href="mailto:hola@prospekto.mx">hola@prospekto.mx</a>
+          </p>
+
+          <p>
             En <strong>Prospekto</strong> ("nosotros", "nuestro" o "la plataforma"), respetamos tu privacidad y nos
             comprometemos a proteger la información personal que compartes con nosotros. Esta Política de Privacidad
             describe qué datos recopilamos, cómo los usamos y cuáles son tus derechos.

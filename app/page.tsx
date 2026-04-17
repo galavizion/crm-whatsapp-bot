@@ -764,8 +764,11 @@ export default function LandingPage() {
           <Image src="/Prospekt-icono.png" alt="Prospekto" width={24} height={24} className="rounded-md" />
           <span style={{ fontSize: 15, fontWeight: 700, color: "#1a2035" }}>PROSPEKTO</span>
         </div>
-        <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 4 }}>
           CRM + Bot WhatsApp para PyMEs mexicanas · {new Date().getFullYear()}
+        </div>
+        <div style={{ fontSize: 12, color: "#b0b8c9", marginBottom: 12 }}>
+          Operado por Rene Alejandro Galaviz Badillo
         </div>
         <div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap" }}>
           <a href="/condiciones" style={{ fontSize: 13, color: "#9ca3af", textDecoration: "none" }}
