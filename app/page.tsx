@@ -667,7 +667,7 @@ export default function LandingPage() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
             {[
-              { icon: "💬", title: "Bot conversacional con IA", desc: "Responde en lenguaje natural con el tono de tu negocio. GPT-4o-mini integrado, sin configuración compleja." },
+              { icon: "💬", title: "Bot conversacional con IA", desc: "Responde en lenguaje natural con el tono de tu negocio.Tu eliges que y como responder, sin configuración compleja." },
               { icon: "🎯", title: "Extracción automática de datos", desc: "Nombre, necesidad, presupuesto y estado — extraídos de la conversación sin formularios." },
               { icon: "⚡", title: "Asignación round-robin", desc: "Cada lead se asigna al siguiente vendedor disponible. Justo, automático y sin conflictos internos." },
               { icon: "📊", title: "CRM visual en tiempo real", desc: "Pipeline, lista y detalle de cada lead. Filtros por estado, historial completo y exportación CSV." },

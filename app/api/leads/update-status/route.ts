@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const ESTADOS_VALIDOS = [
   "interesado",
-  "llamar",
+  "contactar",
   "contactado",
   "cliente",
   "perdido",

@@ -45,7 +45,7 @@ export function getSystemPrompt({
     contacto.datos_extra ? `Otros datos: ${contacto.datos_extra}` : null,
   ].filter(Boolean).join("\n");
 
-  const yaAgendoLlamada = contacto.estado === "llamar";
+  const yaAgendoLlamada = contacto.estado === "contactar";
 
   // Buscar productos relevantes al mensaje del cliente
   const productosRelevantes = buscarProductos(business?.catalogo ?? null, mensajeUsuario)
@@ -134,7 +134,7 @@ ${yaAgendoLlamada
 ⚠️ RECORDATORIO DEL SISTEMA:
 El sistema solo maneja dos estados automáticos:
 - "interesado": Cliente está preguntando, explorando
-- "llamar": Cliente pidió o aceptó que lo llamen
+- "contactar": Cliente pidió o aceptó que lo llamen
 
 Los estados "contactado", "cliente" y "perdido" los asigna el vendedor manualmente.
 `;

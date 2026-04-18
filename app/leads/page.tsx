@@ -42,7 +42,7 @@ type SellerOption = {
 
 const ESTADOS_TABLA = [
   { key: "interesado", label: "Interesados" },
-  { key: "llamar", label: "Llamar" },
+  { key: "contactar", label: "Llamar" },
   { key: "contactado", label: "Contactados" },
   { key: "cliente", label: "Clientes" },
   { key: "perdido", label: "Perdidos" },
@@ -50,7 +50,7 @@ const ESTADOS_TABLA = [
 
 const ESTADOS_PIPELINE = [
   { key: "interesado", label: "Interesados" },
-  { key: "llamar", label: "Llamar" },
+  { key: "contactar", label: "Llamar" },
   { key: "contactado", label: "Contactados" },
 ];
 
@@ -77,7 +77,7 @@ function getBadgeClasses(estado: string | null) {
   const value = (estado || "").toLowerCase();
 
   if (value === "interesado") return "bg-blue-100 text-blue-800";
-  if (value === "llamar") return "bg-amber-100 text-amber-800";
+  if (value === "contactar") return "bg-amber-100 text-amber-800";
   if (value === "contactado") return "bg-violet-100 text-violet-800";
   if (value === "cliente") return "bg-emerald-100 text-emerald-800";
   if (value === "perdido") return "bg-rose-100 text-rose-800";
@@ -198,7 +198,7 @@ export default async function LeadsPage({
 
   const columnas: Record<string, Contacto[]> = {
     interesado: [],
-    llamar: [],
+    contactar: [],
     contactado: [],
   };
 

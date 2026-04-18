@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 const estados = [
   "interesado",
-  "llamar",
+  "contactar",
   "contactado",
   "cliente",
   "perdido",
@@ -15,7 +15,7 @@ function getEstadoClasses(estado: string) {
   switch (estado) {
     case "interesado":
       return "bg-blue-500 text-white";
-    case "llamar":
+    case "contactar":
       return "bg-yellow-400 text-black";
     case "contactado":
       return "bg-fuchsia-600 text-white";
@@ -111,7 +111,7 @@ export default function StatusDropdown({
         ))}
       </select>
 
-      <span className="min-w-[68px] text-xs font-semibold">
+      <span className="min-w-17 text-xs font-semibold">
         {saved === "saving" && (
           <span className="animate-pulse text-[#9c4f93]">Guardando...</span>
         )}

@@ -25,7 +25,7 @@ export type MemoryExtraction = {
   resumen: string;
   ultimo_tema: string;
   necesidad: string;
-  estado: "interesado" | "llamar";
+  estado: "interesado" | "contactar";
   nombre: string;
   sitio_web: string;
   tipo_negocio: string;
@@ -79,10 +79,10 @@ INSTRUCCIONES:
 4. Escribe contenido real basado en la conversación
 
 REGLAS PARA EL CAMPO "estado":
-- Usa "llamar" si el cliente:
+- Usa "contactar" si el cliente:
   * Acepta que lo llamen ("sí", "claro", "dale", "ok", "perfecto")
   * Pide una llamada ("llámenme", "quiero que me llamen")
-  * Da fecha/hora para llamar ("lunes a las 10", "mañana", etc)
+  * Da fecha/hora para contactar ("lunes a las 10", "mañana", etc)
 - Usa "interesado" en todos los demás casos
 
 REGLAS PARA OTROS CAMPOS:
@@ -165,9 +165,9 @@ function fallback(contacto: Contacto, incomingMessage: string): MemoryExtraction
   };
 }
 
-export function normalizeEstado(estado: string): "interesado" | "llamar" {
+export function normalizeEstado(estado: string): "interesado" | "contactar" {
   const v = String(estado || "").toLowerCase().trim();
-  if (v === "llamar") return "llamar";
+  if (v === "contactar") return "contactar";
   return "interesado";
 }
 

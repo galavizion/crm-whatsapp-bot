@@ -40,8 +40,8 @@ const STATUS_CONFIG = [
       "border-blue-200 bg-blue-50 text-blue-800 hover:border-blue-300 hover:bg-blue-100",
   },
   {
-    key: "llamar",
-    label: "Llamar",
+    key: "contactar",
+    label: "Contactar",
     icon: PhoneCall,
     color:
       "border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-300 hover:bg-amber-100",
