@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     console.log("🔥 WEBHOOK HIT");
 
     const body = await req.json();
+    console.log("📨 RAW:", JSON.stringify(body));
     const entry = body.entry?.[0];
     const change = entry?.changes?.[0];
     const value = change?.value;
