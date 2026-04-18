@@ -147,20 +147,20 @@ export default function Sidebar() {
             </Link>
 
             <Link
-              href="/admin/bot"
+              href="/mi-negocio/bot"
               onClick={() => setMobileMenuOpen(false)}
               className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                isActive("/admin/bot")
+                isActive("/mi-negocio/bot")
                   ? "bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] text-white shadow-[0_10px_25px_rgba(200,79,146,0.24)]"
                   : "text-white/75 hover:bg-white/10 hover:text-white"
               }`}
             >
               <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
-                isActive("/admin/bot") ? "bg-white/15 text-white" : "bg-white/5 text-white/75 group-hover:bg-white/10 group-hover:text-white"
+                isActive("/mi-negocio/bot") ? "bg-white/15 text-white" : "bg-white/5 text-white/75 group-hover:bg-white/10 group-hover:text-white"
               }`}>
                 <Bot size={18} />
               </span>
-              <span>Config Bot</span>
+              <span>Mi Negocio</span>
             </Link>
 
             {isGod && (
@@ -266,19 +266,19 @@ export default function Sidebar() {
             </Link>
 
             <Link
-              href="/admin/bot"
+              href="/mi-negocio/bot"
               className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                isActive("/admin/bot")
+                isActive("/mi-negocio/bot")
                   ? "bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] text-white shadow-[0_10px_25px_rgba(200,79,146,0.24)]"
                   : "text-white/75 hover:bg-white/10 hover:text-white"
               }`}
             >
               <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
-                isActive("/admin/bot") ? "bg-white/15 text-white" : "bg-white/5 text-white/75 group-hover:bg-white/10 group-hover:text-white"
+                isActive("/mi-negocio/bot") ? "bg-white/15 text-white" : "bg-white/5 text-white/75 group-hover:bg-white/10 group-hover:text-white"
               }`}>
                 <Bot size={18} />
               </span>
-              <span>Config Bot</span>
+              <span>Mi Negocio</span>
             </Link>
 
             {isGod && (
