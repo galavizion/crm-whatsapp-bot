@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import Link from "next/link";
-import { ArrowLeft, Building2 } from "lucide-react";
+import { ArrowLeft, Building2, CheckCircle2 } from "lucide-react";
 import { updateBusiness } from "@/app/god/negocios/actions";
 
 const GOD_EMAIL = "rene.galaviz@gmail.com";
@@ -27,8 +27,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-export default async function EditarNegocioPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditarNegocioPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ saved?: string }>;
+}) {
   const { id } = await params;
+  const { saved } = await searchParams;
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -72,6 +79,30 @@ export default async function EditarNegocioPage({ params }: { params: Promise<{ 
             </div>
           </div>
         </div>
+
+        {/* BANNER DE ÉXITO */}
+        {saved === "true" && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+              <p className="text-sm font-semibold text-emerald-700">¡Cambios guardados correctamente!</p>
+            </div>
+            <ul className="space-y-1.5 pl-8">
+              {[
+                { label: "Nombre", value: business.name },
+                { label: "Slug", value: business.slug },
+                { label: "Phone Number ID", value: wa?.phone_number_id || "—" },
+                { label: "Número visible", value: wa?.display_phone || "—" },
+                { label: "Access Token", value: wa?.access_token ? "••••••••" + wa.access_token.slice(-6) : "—" },
+              ].map(({ label, value }) => (
+                <li key={label} className="text-sm text-emerald-700 flex gap-2">
+                  <span className="font-medium">{label}:</span>
+                  <span className="text-emerald-600">{value}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <form action={handleUpdate} className="space-y-5">
 

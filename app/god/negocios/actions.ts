@@ -80,28 +80,19 @@ export async function updateBusiness(businessId: string, formData: FormData) {
   await supabase.from("businesses").update({ name, slug }).eq("id", businessId);
 
   if (phoneNumberId) {
-    const { data: existing } = await supabase
-      .from("whatsapp_accounts")
-      .select("id")
-      .eq("business_id", businessId)
-      .maybeSingle();
+    const upsertData: Record<string, unknown> = {
+      business_id: businessId,
+      phone_number_id: phoneNumberId,
+      is_active: true,
+    };
+    if (accessToken) upsertData.access_token = accessToken;
+    if (displayPhone) upsertData.display_phone = displayPhone;
 
-    if (existing) {
-      await supabase
-        .from("whatsapp_accounts")
-        .update({ phone_number_id: phoneNumberId, access_token: accessToken || undefined, display_phone: displayPhone || undefined })
-        .eq("business_id", businessId);
-    } else if (accessToken) {
-      await supabase.from("whatsapp_accounts").insert({
-        business_id: businessId,
-        phone_number_id: phoneNumberId,
-        access_token: accessToken,
-        display_phone: displayPhone,
-        is_active: true,
-      });
-    }
+    await supabase
+      .from("whatsapp_accounts")
+      .upsert(upsertData, { onConflict: "phone_number_id" });
   }
 
   revalidatePath("/god/negocios");
-  redirect("/god/negocios");
+  redirect(`/god/negocios/${businessId}/editar?saved=true`);
 }
