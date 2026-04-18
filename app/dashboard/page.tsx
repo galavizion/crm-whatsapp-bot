@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import {
   Users,
   PhoneCall,
@@ -86,6 +87,8 @@ function formatDate(dateString: string | null) {
   }
 }
 
+const GOD_EMAIL = "rene.galaviz@gmail.com";
+
 export default async function DashboardPage() {
   const supabase = await createClient();
 
@@ -97,39 +100,57 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-const { data: userData, error: userError } = await supabase
-  .from("business_users")
-  .select("role")
-  .eq("user_id", user.id)
-  .maybeSingle();
+  const isGod = user.email === GOD_EMAIL;
 
-const role = String(userData?.role || "").toLowerCase().trim();
-const isAdmin = role === "admin";
+  let role = "";
+  let isAdmin = false;
+  let contactos: Contacto[] = [];
 
-  let contactosQuery = supabase
-    .from("contactos")
-    .select(
-      "id, nombre, whatsapp, resumen, necesidad, estado, assigned_user_id, ultima_respuesta, created_at"
-    )
-    .order("created_at", { ascending: false });
-
-  if (!isAdmin) {
-    contactosQuery = contactosQuery.eq("assigned_user_id", user.id);
-  }
-
-  const { data: contactosData, error: contactosError } = await contactosQuery;
-
-  if (contactosError) {
-    return (
-      <div className="p-6">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
-          Error cargando dashboard: {contactosError.message}
-        </div>
-      </div>
+  if (isGod) {
+    isAdmin = true;
+    const admin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
+    const { data } = await admin
+      .from("contactos")
+      .select("id, nombre, whatsapp, resumen, necesidad, estado, assigned_user_id, ultima_respuesta, created_at")
+      .order("created_at", { ascending: false });
+    contactos = (data ?? []) as Contacto[];
+    role = "god";
+  } else {
+    const { data: userData } = await supabase
+      .from("business_users")
+      .select("role")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    role = String(userData?.role || "").toLowerCase().trim();
+    isAdmin = role === "admin";
+
+    let contactosQuery = supabase
+      .from("contactos")
+      .select("id, nombre, whatsapp, resumen, necesidad, estado, assigned_user_id, ultima_respuesta, created_at")
+      .order("created_at", { ascending: false });
+
+    if (!isAdmin) {
+      contactosQuery = contactosQuery.eq("assigned_user_id", user.id);
+    }
+
+    const { data: contactosData, error: contactosError } = await contactosQuery;
+
+    if (contactosError) {
+      return (
+        <div className="p-6">
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
+            Error cargando dashboard: {contactosError.message}
+          </div>
+        </div>
+      );
+    }
+    contactos = (contactosData ?? []) as Contacto[];
   }
 
-  const contactos = (contactosData ?? []) as Contacto[];
   const totalLeads = contactos.length;
   const recientes = contactos.slice(0, 8);
 
@@ -142,15 +163,17 @@ const isAdmin = role === "admin";
         <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-medium text-neutral-500">
-              {isAdmin ? "Vista administrador" : "Vista vendedor"}
+              {isGod ? "Vista God" : isAdmin ? "Vista administrador" : "Vista vendedor"}
             </p>
 
             <h1 className="text-3xl font-bold tracking-tight text-neutral-900">
-              {isAdmin ? "Dashboard de leads" : "Mis leads"}
+              {isGod ? "Dashboard global" : isAdmin ? "Dashboard de leads" : "Mis leads"}
             </h1>
 
             <p className="mt-1 text-sm text-neutral-600">
-              {isAdmin
+              {isGod
+                ? "Todos los leads de todos los negocios."
+                : isAdmin
                 ? "Resumen general del CRM y acceso rápido por estado."
                 : "Aquí ves únicamente tus leads y tus pendientes."}
             </p>
@@ -178,7 +201,7 @@ const isAdmin = role === "admin";
         <div className="mb-6">
           <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-neutral-500">
-              {isAdmin ? "Total de leads" : "Mis leads totales"}
+              {isGod ? "Total global" : isAdmin ? "Total de leads" : "Mis leads totales"}
             </p>
 
             <div className="mt-2 flex items-end gap-3">
@@ -187,7 +210,7 @@ const isAdmin = role === "admin";
               </span>
 
               <span className="pb-1 text-sm text-neutral-500">
-                {isAdmin ? "en todo el sistema" : "asignados a ti"}
+                {isGod ? "en todos los negocios" : isAdmin ? "en todo el sistema" : "asignados a ti"}
               </span>
             </div>
           </div>
