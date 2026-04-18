@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   LayoutDashboard, 
   Users, 
@@ -23,7 +23,7 @@ export default function Sidebar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isGod, setIsGod] = useState(false);
 
-  useState(() => {
+  useEffect(() => {
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -31,7 +31,7 @@ export default function Sidebar() {
     supabase.auth.getUser().then(({ data }) => {
       setIsGod(data.user?.email === GOD_EMAIL);
     });
-  });
+  }, []);
 
   const isActive = (path: string) => pathname === path;
 
