@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
 
     const businessId = waAccount.business_id;
     const accessToken = waAccount.access_token || "";
+    console.log("🔑 accessToken:", accessToken ? accessToken.slice(0, 10) + "..." : "VACÍO");
 
     // 2. EVITAR DUPLICADOS
     const { error: insertError } = await supabase
