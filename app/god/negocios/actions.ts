@@ -80,17 +80,32 @@ export async function updateBusiness(businessId: string, formData: FormData) {
   await supabase.from("businesses").update({ name, slug }).eq("id", businessId);
 
   if (phoneNumberId) {
-    const upsertData: Record<string, unknown> = {
-      business_id: businessId,
-      phone_number_id: phoneNumberId,
-      is_active: true,
-    };
-    if (accessToken) upsertData.access_token = accessToken;
-    if (displayPhone) upsertData.display_phone = displayPhone;
-
-    await supabase
+    const { data: waRows } = await supabase
       .from("whatsapp_accounts")
-      .upsert(upsertData, { onConflict: "phone_number_id" });
+      .select("id")
+      .eq("business_id", businessId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const existingWa = waRows?.[0] ?? null;
+
+    if (existingWa) {
+      const updateWaData: Record<string, unknown> = {
+        phone_number_id: phoneNumberId,
+        is_active: true,
+      };
+      if (accessToken) updateWaData.access_token = accessToken;
+      if (displayPhone) updateWaData.display_phone = displayPhone;
+      await supabase.from("whatsapp_accounts").update(updateWaData).eq("id", existingWa.id);
+    } else {
+      const insertWaData: Record<string, unknown> = {
+        business_id: businessId,
+        phone_number_id: phoneNumberId,
+        is_active: true,
+      };
+      if (accessToken) insertWaData.access_token = accessToken;
+      if (displayPhone) insertWaData.display_phone = displayPhone;
+      await supabase.from("whatsapp_accounts").insert(insertWaData);
+    }
   }
 
   revalidatePath("/god/negocios");

@@ -23,7 +23,9 @@ async function createNegocio(formData: FormData) {
   const accessToken = String(formData.get("access_token") || "").trim();
   const displayPhone = String(formData.get("display_phone") || "").trim();
 
-  if (!name || !slug || !adminEmail || !adminPassword) return;
+  if (!name || !slug || !adminEmail || !adminPassword) {
+    redirect("/god/negocios/nuevo?error=campos_requeridos");
+  }
 
   // 1. Crear negocio
   const { data: business, error: bizError } = await supabase
@@ -32,7 +34,10 @@ async function createNegocio(formData: FormData) {
     .select()
     .maybeSingle();
 
-  if (bizError || !business) return;
+  if (bizError || !business) {
+    const msg = encodeURIComponent(bizError?.message || "Error al crear negocio");
+    redirect(`/god/negocios/nuevo?error=${msg}`);
+  }
 
   // 2. Crear usuario admin en Supabase Auth
   const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
@@ -41,7 +46,12 @@ async function createNegocio(formData: FormData) {
     email_confirm: true,
   });
 
-  if (authError || !authUser?.user) return;
+  if (authError || !authUser?.user) {
+    // Revertir negocio creado
+    await supabase.from("businesses").delete().eq("id", business.id);
+    const msg = encodeURIComponent(authError?.message || "Error al crear usuario admin");
+    redirect(`/god/negocios/nuevo?error=${msg}`);
+  }
 
   // 3. Agregar a business_users como admin
   await supabase.from("business_users").insert({
@@ -66,11 +76,22 @@ async function createNegocio(formData: FormData) {
   redirect("/god/negocios");
 }
 
-export default async function NuevoNegocioPage() {
+export default async function NuevoNegocioPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   if (user.email !== GOD_EMAIL) redirect("/dashboard");
+
+  const errorMsg = error === "campos_requeridos"
+    ? "Completa todos los campos obligatorios."
+    : error
+    ? decodeURIComponent(error)
+    : null;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -80,6 +101,12 @@ export default async function NuevoNegocioPage() {
           <ArrowLeft className="w-4 h-4" />
           Volver a negocios
         </Link>
+
+        {errorMsg && (
+          <div className="bg-rose-50 border border-rose-200 rounded-2xl px-5 py-4 text-sm text-rose-700 font-medium">
+            ⚠️ {errorMsg}
+          </div>
+        )}
 
         {/* HEADER */}
         <div className="bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] rounded-2xl p-6 text-white">

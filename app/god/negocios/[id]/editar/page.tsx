@@ -50,7 +50,8 @@ export default async function EditarNegocioPage({
   const { data: business } = await admin.from("businesses").select("*").eq("id", id).maybeSingle();
   if (!business) redirect("/god/negocios");
 
-  const { data: wa } = await admin.from("whatsapp_accounts").select("*").eq("business_id", id).maybeSingle();
+  const { data: waRows } = await admin.from("whatsapp_accounts").select("*").eq("business_id", id).order("created_at", { ascending: false }).limit(1);
+  const wa = waRows?.[0] ?? null;
   const { data: adminUser } = await admin.from("business_users").select("email").eq("business_id", id).eq("role", "admin").maybeSingle();
 
   async function handleUpdate(formData: FormData) {
