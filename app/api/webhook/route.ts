@@ -40,35 +40,48 @@ export async function POST(req: NextRequest) {
     const value = change?.value;
     const message = value?.messages?.[0];
 
-    if (!message) return new NextResponse("No message", { status: 200 });
+    if (!message) {
+      console.log("⚠️ Sin mensaje en el body. Tipo de evento:", value?.statuses ? "status_update" : "otro");
+      return new NextResponse("No message", { status: 200 });
+    }
 
     const phoneNumberId = String(value?.metadata?.phone_number_id || "").trim();
     const from = message.from;
     const messageId = message.id;
     const text = message.text?.body || "";
-    
-    // ✅ NUEVO: Extraer nombre del perfil de WhatsApp
+    const messageType = message.type || "unknown";
+
     const profileName = value?.contacts?.[0]?.profile?.name || null;
 
-    console.log("📞 phoneNumberId:", phoneNumberId);
-    console.log("👤 Nombre del perfil:", profileName);
-    console.log("💬 Mensaje recibido:", text);
+    console.log("📞 phoneNumberId recibido:", `"${phoneNumberId}"`);
+    console.log("👤 Perfil:", profileName);
+    console.log("💬 Tipo:", messageType, "| Texto:", text || "(vacío)");
+    console.log("📱 De:", from);
+
+    if (messageType !== "text") {
+      console.log(`⚠️ Tipo de mensaje no soportado: ${messageType} — se ignora`);
+      return new NextResponse("ok", { status: 200 });
+    }
 
     // 1. MAPEAR A NEGOCIO
     const { data: waAccount, error: waError } = await supabase
       .from("whatsapp_accounts")
-      .select("business_id, access_token")
+      .select("business_id, access_token, phone_number_id")
       .eq("phone_number_id", phoneNumberId)
       .maybeSingle();
 
+    console.log("🔍 Búsqueda en whatsapp_accounts por phone_number_id:", phoneNumberId);
+    console.log("🔍 Resultado:", waAccount ? `business_id=${waAccount.business_id}` : "NO ENCONTRADO", waError ? `| error: ${waError.message}` : "");
+
     if (waError || !waAccount?.business_id) {
-      console.error("❌ Número no vinculado:", waError);
+      console.error("❌ Número no vinculado a ningún negocio. phone_number_id buscado:", phoneNumberId);
       return new NextResponse("ok", { status: 200 });
     }
 
     const businessId = waAccount.business_id;
     const accessToken = waAccount.access_token || "";
-    console.log("🔑 accessToken:", accessToken ? accessToken.slice(0, 10) + "..." : "VACÍO");
+    console.log("✅ Negocio encontrado:", businessId);
+    console.log("🔑 accessToken:", accessToken ? accessToken.slice(0, 10) + "..." : "⚠️ VACÍO — no podrá enviar mensajes");
 
     // 2. EVITAR DUPLICADOS
     const { error: insertError } = await supabase
@@ -283,9 +296,10 @@ export async function POST(req: NextRequest) {
     const resultado = await sendWhatsAppText({ accessToken, phoneNumberId, to: from, body: respuesta });
 
     if (!resultado.ok) {
-      console.error("❌ Error enviando WhatsApp:", resultado.error);
+      console.error("❌ Error enviando WhatsApp:", JSON.stringify(resultado.error));
+      console.error("❌ Params usados — phoneNumberId:", phoneNumberId, "| to:", from, "| tokenInicio:", accessToken.slice(0, 10));
     } else {
-      console.log("✅ Mensaje enviado");
+      console.log("✅ Mensaje enviado a", from);
     }
 
     return new NextResponse("ok", { status: 200 });
