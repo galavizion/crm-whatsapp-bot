@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { ArrowLeft, Building2, Users, Plus, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Building2, Users, Plus, Trash2, CheckCircle, XCircle, Phone } from "lucide-react";
+import ConnectWhatsAppButton from "@/components/meta/ConnectWhatsAppButton";
 
 const GOD_EMAIL = "rene.galaviz@gmail.com";
 
@@ -189,11 +190,14 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
 
         {/* WHATSAPP ACCOUNTS */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-          <h2 className="font-semibold text-slate-800 mb-4">Números de WhatsApp</h2>
+          <h2 className="font-semibold text-slate-800 flex items-center gap-2 mb-4">
+            <Phone className="w-4 h-4 text-slate-400" />
+            Números de WhatsApp
+          </h2>
           {!waAccounts || waAccounts.length === 0 ? (
-            <p className="text-sm text-slate-400">Sin números configurados.</p>
+            <p className="text-sm text-slate-400 mb-4">Sin números configurados.</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 mb-4">
               {waAccounts.map((wa: any) => (
                 <div key={wa.id} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                   <p className="text-sm font-medium text-slate-800">+{wa.display_phone}</p>
@@ -205,6 +209,10 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
               ))}
             </div>
           )}
+          <div className="border-t border-slate-100 pt-4">
+            <p className="text-xs text-slate-500 mb-3">Conectar nuevo número via Embedded Signup:</p>
+            <ConnectWhatsAppButton businessId={id} />
+          </div>
         </div>
 
       </div>

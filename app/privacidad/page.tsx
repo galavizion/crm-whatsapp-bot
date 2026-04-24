@@ -84,28 +84,45 @@ export default function PrivacidadPage() {
             automáticas. No utilizamos estos datos para entrenar modelos externos.
           </p>
 
-          <h2>4. Compartición de datos</h2>
+          <h2>4. Integración con Facebook (Embedded Signup)</h2>
+          <p>
+            Para conectar tu cuenta de WhatsApp Business, Prospekto utiliza <strong>Facebook Login</strong> (Embedded Signup)
+            de Meta. A través de este proceso:
+          </p>
+          <ul>
+            <li>Solicitamos acceso a tu <strong>cuenta de WhatsApp Business (WABA)</strong> y al <strong>número de teléfono</strong> asociado.</li>
+            <li>Obtenemos un <strong>token de acceso</strong> que usamos exclusivamente para enviar y recibir mensajes en tu nombre.</li>
+            <li>No accedemos a tu perfil personal de Facebook ni a información no relacionada con WhatsApp Business.</li>
+            <li>Puedes revocar el acceso en cualquier momento desde la configuración de tu cuenta de Meta Business.</li>
+          </ul>
+          <p>
+            Los datos obtenidos a través de Facebook Login se usan únicamente para operar el bot de WhatsApp de tu negocio.
+            Para más información sobre cómo Meta maneja los datos, consulta la{" "}
+            <a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer">Política de Privacidad de Meta</a>.
+          </p>
+
+          <h2>5. Compartición de datos</h2>
           <p>No vendemos ni alquilamos tu información personal. Podemos compartir datos únicamente con:</p>
           <ul>
-            <li><strong>Proveedores de servicio:</strong> OpenAI (procesamiento de IA), Meta (API de WhatsApp Business), Supabase (base de datos), Vercel (hospedaje).</li>
+            <li><strong>Proveedores de servicio:</strong> OpenAI (procesamiento de IA), Meta (API de WhatsApp Business y Facebook Login), Supabase (base de datos), Vercel (hospedaje).</li>
             <li><strong>Autoridades competentes:</strong> cuando la ley mexicana lo exija.</li>
           </ul>
           <p>Todos nuestros proveedores están sujetos a acuerdos de protección de datos.</p>
 
-          <h2>5. Almacenamiento y seguridad</h2>
+          <h2>6. Almacenamiento y seguridad</h2>
           <p>
             Tus datos se almacenan en servidores seguros con cifrado en tránsito (TLS) y en reposo. Implementamos
             controles de acceso y auditorías periódicas. Sin embargo, ningún sistema es 100% infalible y no podemos
             garantizar seguridad absoluta.
           </p>
 
-          <h2>6. Retención de datos</h2>
+          <h2>7. Retención de datos</h2>
           <p>
             Conservamos tus datos mientras tu cuenta esté activa. Al cancelar tu cuenta, eliminamos o anonimizamos
             tu información dentro de los 30 días siguientes, salvo obligación legal de conservarla por más tiempo.
           </p>
 
-          <h2>7. Tus derechos (ARCO)</h2>
+          <h2>8. Tus derechos (ARCO)</h2>
           <p>Conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (México), tienes derecho a:</p>
           <ul>
             <li><strong>Acceso:</strong> conocer qué datos tenemos sobre ti.</li>
@@ -119,26 +136,26 @@ export default function PrivacidadPage() {
             <Link href="/eliminacion-datos">página de eliminación de datos</Link>.
           </p>
 
-          <h2>8. Cookies</h2>
+          <h2>9. Cookies</h2>
           <p>
             Utilizamos cookies de sesión esenciales para el funcionamiento de la plataforma. No utilizamos cookies
             de seguimiento publicitario de terceros.
           </p>
 
-          <h2>9. Menores de edad</h2>
+          <h2>10. Menores de edad</h2>
           <p>
             Prospekto es un servicio dirigido a empresas y no está destinado a menores de 18 años. No recopilamos
             datos de menores de forma intencionada.
           </p>
 
-          <h2>10. Cambios a esta política</h2>
+          <h2>11. Cambios a esta política</h2>
           <p>
             Podemos actualizar esta Política de Privacidad ocasionalmente. Te notificaremos por correo electrónico
             o mediante un aviso en la plataforma ante cambios sustanciales. El uso continuado del servicio después
             de la notificación implica tu aceptación.
           </p>
 
-          <h2>11. Contacto</h2>
+          <h2>12. Contacto</h2>
           <p>
             ¿Tienes preguntas sobre esta política? Escríbenos a{" "}
             <a href="mailto:hola@prospekto.mx">hola@prospekto.mx</a>.
