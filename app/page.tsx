@@ -462,12 +462,12 @@ export default function LandingPage() {
           </p>
 
           <div className="fade-up delay-3 flex flex-wrap justify-center gap-3">
-            <button className="btn-primary" onClick={() => router.push("/login")}>Activar mi bot gratis →</button>
+            <a className="btn-primary" href={`https://wa.me/528112981231?text=${encodeURIComponent("Quiero contratar mi servicio de Prospekto")}`} target="_blank" rel="noopener noreferrer">Quiero mi bot de WhatsApp →</a>
             <button className="btn-secondary" onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })}>Ver cómo funciona</button>
           </div>
 
           <p className="fade-up delay-4" style={{ marginTop: 20, fontSize: 13, color: "#9ca3af" }}>
-             Desde $699 MXN/mes · Setup en minutos (dependiendo de su perfil de meta)
+            Desde $699 MXN/mes · Setup en minutos (dependiendo de su perfil de meta)
           </p>
         </div>
       </section>
@@ -754,11 +754,11 @@ export default function LandingPage() {
               ))}
             </div>
 
-            <button className="btn-primary" style={{ width: "100%", fontSize: 16, padding: "16px", borderRadius: 14 }} onClick={() => router.push("/login")}>
-              Quiero este precio — entrar gratis →
-            </button>
+            <a className="btn-primary" style={{ width: "100%", fontSize: 16, padding: "16px", borderRadius: 14, display: "block", textAlign: "center", textDecoration: "none" }} href={`https://wa.me/528112981231?text=${encodeURIComponent("Quiero contratar mi servicio de Prospekto")}`} target="_blank" rel="noopener noreferrer">
+              Quiero este precio →
+            </a>
             <div style={{ marginTop: 12, fontSize: 12, color: "#9ca3af" }}>
-              Sin tarjeta de crédito · Cancela cuando quieras
+              Escríbenos y te damos de alta el mismo día
             </div>
           </div>
         </div>
@@ -766,7 +766,7 @@ export default function LandingPage() {
 
       {/* ─── BOTÓN FLOTANTE WHATSAPP ─── */}
       <a
-        href={`https://wa.me/528112982131?text=${encodeURIComponent("quiero contratar el bot")}`}
+        href={`https://wa.me/528112981231?text=${encodeURIComponent("Quiero contratar mi servicio de Prospekto")}`}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Contactar por WhatsApp"

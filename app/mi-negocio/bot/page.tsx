@@ -158,7 +158,7 @@ export default async function BotConfigPage({
             name="instrucciones_bot"
             defaultValue={b.instrucciones_bot || ""}
             rows={5}
-            placeholder={`Ej:\n- Nunca menciones a la competencia\n- Si preguntan por precios, invita a una llamada`}
+            placeholder={`Ej:\n- Cuando el cliente haya explicado su necesidad, pregúntale: "¿Te gustaría que un asesor te contacte para darte más detalles?"\n- Si el cliente menciona urgencia o fecha límite, ofrece la llamada de inmediato\n- Nunca menciones a la competencia`}
             className="w-full text-sm border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-purple-300 placeholder:text-slate-400"
           />
         </Section>

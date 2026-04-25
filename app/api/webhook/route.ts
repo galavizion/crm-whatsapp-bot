@@ -157,7 +157,6 @@ export async function POST(req: NextRequest) {
         assignedUserId = counts[0].user_id;
         console.log(`👥 Auto-asignado a seller con ${counts[0].count} leads`);
 
-        // Obtener WhatsApp del seller asignado para notificación
         const { data: sellerUser } = await supabase
           .from("business_users")
           .select("whatsapp")
@@ -183,21 +182,31 @@ export async function POST(req: NextRequest) {
       contacto = nuevo;
       console.log("👤 Contacto creado:", profileName ?? "sin nombre", "| asignado a:", assignedUserId ?? "sin asignar");
     } else {
-      // ✅ MEJORADO: Actualizar nombre si viene del perfil y no lo tenemos
-      const updateData: any = { 
-        veces_contacto: (contacto.veces_contacto || 0) + 1 
+      // Actualizar nombre si viene del perfil y no lo tenemos
+      const updateData: any = {
+        veces_contacto: (contacto.veces_contacto || 0) + 1
       };
-      
-      // Solo actualizar nombre si viene del perfil y el contacto no tiene nombre o tiene "Desconocido"
+
       if (profileName && (!contacto.nombre || contacto.nombre === 'Desconocido')) {
         updateData.nombre = profileName;
         console.log("📝 Actualizando nombre a:", profileName);
       }
-      
+
       await supabase
         .from("contactos")
         .update(updateData)
         .eq("id", contacto.id);
+
+      // Buscar WhatsApp del seller para notificación (contacto existente)
+      if (contacto.assigned_user_id) {
+        const { data: sellerUser } = await supabase
+          .from("business_users")
+          .select("whatsapp")
+          .eq("user_id", contacto.assigned_user_id)
+          .eq("business_id", businessId)
+          .maybeSingle();
+        sellerWhatsapp = sellerUser?.whatsapp || null;
+      }
     }
 
     // 5. OBTENER HISTORIAL RECIENTE (últimos 10 mensajes)
@@ -263,19 +272,22 @@ export async function POST(req: NextRequest) {
       console.log("🧠 Memoria actualizada:", memory.estado);
     }
 
-    // 8.5. NOTIFICAR AL VENDEDOR (solo leads nuevos con WhatsApp registrado)
-    if (isNewContact && sellerWhatsapp && contacto) {
-      const nombre = profileName || memory?.nombre || "Sin nombre";
-      const necesidad = memory?.necesidad || "No especificada";
-      const presupuesto = memory?.presupuesto || "No especificado";
+    // 8.5. NOTIFICAR AL VENDEDOR cuando el bot califica el lead como "contactar"
+    const estadoAnterior = contacto?.estado || "interesado";
+    const estadoNuevo = memory?.estado;
+    const transicionAContactar = estadoNuevo === "contactar" && estadoAnterior !== "contactar";
+
+    if (transicionAContactar && sellerWhatsapp && contacto) {
+      const nombre = profileName || memory?.nombre || contacto.nombre || "Sin nombre";
+      const necesidad = memory?.necesidad || contacto.necesidad || "No especificada";
+      const presupuesto = memory?.presupuesto || contacto.presupuesto || "No especificado";
       const cleanNumber = sellerWhatsapp.replace(/\D/g, "");
 
       const notifMsg =
-        `🔔 Nuevo lead asignado a ti\n\n` +
+        `📞 Lead listo para llamar\n\n` +
         `Nombre: ${nombre}\n` +
         `Necesidad: ${necesidad}\n` +
-        `Presupuesto: ${presupuesto}\n` +
-        `Estado: interesado\n\n` +
+        `Presupuesto: ${presupuesto}\n\n` +
         `Ver lead → https://prospekto.mx/leads/${contacto.id}`;
 
       const notifResult = await sendWhatsAppText({
@@ -286,7 +298,7 @@ export async function POST(req: NextRequest) {
       });
 
       if (notifResult.ok) {
-        console.log("🔔 Notificación enviada al vendedor:", cleanNumber);
+        console.log("🔔 Notificación 'contactar' enviada al vendedor:", cleanNumber);
       } else {
         console.warn("⚠️ No se pudo notificar al vendedor:", notifResult.error);
       }
