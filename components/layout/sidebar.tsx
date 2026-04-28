@@ -54,7 +54,7 @@ export default function Sidebar() {
       {/* Mobile Header */}
       <div className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-[#2f2944] px-4 py-3 lg:hidden border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 overflow-hidden p-1">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white overflow-hidden p-1">
             <Image
               src="/Prospekt-app.png"
               alt="Prospekto"
@@ -91,7 +91,7 @@ export default function Sidebar() {
           {/* Header Card */}
           <div className="rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(140,122,198,0.30)_0%,rgba(200,79,146,0.22)_100%)] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10 overflow-hidden p-2">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white overflow-hidden p-2">
                 <Image
                   src="/Prospekt-app.png"
                   alt="Prospekto"
@@ -212,7 +212,7 @@ export default function Sidebar() {
           {/* Header Card */}
           <div className="rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(140,122,198,0.30)_0%,rgba(200,79,146,0.22)_100%)] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10 overflow-hidden p-2">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white overflow-hidden p-2">
                 <Image
                   src="/Prospekt-app.png"
                   alt="Prospekto"

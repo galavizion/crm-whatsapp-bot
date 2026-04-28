@@ -247,10 +247,10 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
               ))}
             </div>
           )}
-          <div className="border-t border-slate-100 pt-4">
+          {/* <div className="border-t border-slate-100 pt-4">
             <p className="text-xs text-slate-500 mb-3">Conectar nuevo número via Embedded Signup:</p>
             <ConnectWhatsAppButton businessId={id} />
-          </div>
+          </div> */}
         </div>
 
       </div>
