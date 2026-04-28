@@ -67,7 +67,7 @@ export default function NegociosList({ negocios }: { negocios: NegocioItem[] }) 
           <div key={b.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
             <div className="flex items-start gap-4 flex-wrap">
               {/* Icono */}
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0 mt-0.5">
                 <Building2 className="w-5 h-5 text-indigo-500" />
               </div>
 

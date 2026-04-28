@@ -37,7 +37,7 @@ export default function DeleteModal({ businessId, businessName, leadsCount, onCl
 
         <div className="p-5 space-y-4">
           <div className="flex gap-3 p-4 bg-rose-50 border border-rose-200 rounded-xl">
-            <AlertTriangle className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
             <p className="text-sm text-rose-700 font-medium">
               Esta acción es permanente e irreversible. No hay forma de recuperar los datos.
             </p>
@@ -54,7 +54,7 @@ export default function DeleteModal({ businessId, businessName, leadsCount, onCl
                 "Todos los usuarios del negocio",
               ].map((item) => (
                 <li key={item} className="flex items-center gap-2 text-sm text-slate-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400 flex-shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
                   {item}
                 </li>
               ))}

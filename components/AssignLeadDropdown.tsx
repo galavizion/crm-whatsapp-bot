@@ -85,7 +85,7 @@ export default function AssignLeadDropdown({
 ))}
       </select>
 
-      <span className="min-w-[68px] text-xs font-semibold">
+      <span className="min-w-17 text-xs font-semibold">
         {status === "saving" && (
           <span className="animate-pulse text-[#9c4f93]">Guardando...</span>
         )}

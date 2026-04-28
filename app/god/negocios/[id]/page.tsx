@@ -27,16 +27,54 @@ async function addSeller(formData: FormData) {
   const whatsapp = String(formData.get("whatsapp") || "").trim() || null;
   if (!email || !password) return;
 
-  const { data: authUser } = await supabase.auth.admin.createUser({ email, password, email_confirm: true });
-  if (!authUser?.user) return;
+  let userId: string | null = null;
 
-  await supabase.from("business_users").insert({
+  const { data: authUser, error: createError } = await supabase.auth.admin.createUser({ email, password, email_confirm: true });
+
+  if (createError) {
+    // Si el email ya existe, buscar el usuario existente
+    if (createError.message?.toLowerCase().includes("already") || createError.message?.toLowerCase().includes("existe")) {
+      const { data: listData } = await supabase.auth.admin.listUsers();
+      const existing = listData?.users?.find((u) => u.email === email);
+      if (existing) userId = existing.id;
+      else {
+        console.error("[addSeller] createUser error y no se encontró usuario existente:", createError.message);
+        return;
+      }
+    } else {
+      console.error("[addSeller] createUser error:", createError.message);
+      return;
+    }
+  } else {
+    userId = authUser?.user?.id ?? null;
+  }
+
+  if (!userId) {
+    console.error("[addSeller] No se obtuvo userId");
+    return;
+  }
+
+  // Verificar si ya está en este negocio
+  const { data: existing } = await supabase.from("business_users").select("id").eq("business_id", businessId).eq("user_id", userId).maybeSingle();
+  if (existing) {
+    console.warn("[addSeller] El usuario ya pertenece a este negocio");
+    revalidatePath(`/god/negocios/${businessId}`);
+    return;
+  }
+
+  const { error: insertError } = await supabase.from("business_users").insert({
     business_id: businessId,
-    user_id: authUser.user.id,
+    user_id: userId,
     role,
     email,
     whatsapp,
   });
+
+  if (insertError) {
+    console.error("[addSeller] insert business_users error:", insertError.message);
+    return;
+  }
+
   revalidatePath(`/god/negocios/${businessId}`);
 }
 
