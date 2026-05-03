@@ -55,7 +55,7 @@ NEGOCIO: ${business?.name || "Negocio"}
 
 INFORMACIÓN ACTUAL DEL CLIENTE:
 ${JSON.stringify({
-  nombre: contacto.nombre || "Desconocido",
+  nombre: contacto.nombre || "",
   sitio_web: contacto.sitio_web || "",
   tipo_negocio: contacto.tipo_negocio || "",
   presupuesto: contacto.presupuesto || "",
