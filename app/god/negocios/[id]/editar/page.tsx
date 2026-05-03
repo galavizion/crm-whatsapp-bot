@@ -54,6 +54,10 @@ export default async function EditarNegocioPage({
   const wa = waRows?.[0] ?? null;
   const { data: adminUser } = await admin.from("business_users").select("email").eq("business_id", id).eq("role", "admin").maybeSingle();
 
+  const { data: saRows } = await admin.from("social_accounts").select("*").eq("business_id", id);
+  const igAccount = saRows?.find((r) => r.platform === "instagram") ?? null;
+  const fbAccount = saRows?.find((r) => r.platform === "facebook") ?? null;
+
   async function handleUpdate(formData: FormData) {
     "use server";
     await updateBusiness(id, formData);
@@ -125,6 +129,38 @@ export default async function EditarNegocioPage({
               <p className="text-xs text-slate-400">Para cambiar el admin, hazlo desde la sección Usuarios en Gestionar.</p>
             </Section>
           )}
+
+          <Section title="Cuenta de Instagram">
+            <Field label="Nombre de la página (referencia)">
+              <input name="ig_page_name" defaultValue={igAccount?.page_name || ""} placeholder="Ej: Mi Negocio MX" className={inputClass} />
+            </Field>
+            <Field label="Page ID">
+              <input name="ig_page_id" defaultValue={igAccount?.page_id || ""} placeholder="Ej: 123456789012345" className={inputClass} />
+              <p className="text-xs text-slate-400 mt-1">Configuración de la Página → Sobre esta Page → ID de página</p>
+            </Field>
+            <Field label="Instagram Account ID">
+              <input name="ig_account_id" defaultValue={igAccount?.instagram_account_id || ""} placeholder="Ej: 17841400000000000" className={inputClass} />
+              <p className="text-xs text-slate-400 mt-1">Meta Business Suite → Cuentas de Instagram → ID</p>
+            </Field>
+            <Field label="Access Token permanente">
+              <input name="ig_access_token" defaultValue={igAccount?.access_token || ""} placeholder="EAA..." className={inputClass} />
+              <p className="text-xs text-slate-400 mt-1">Deja vacío para no modificar el token actual.</p>
+            </Field>
+          </Section>
+
+          <Section title="Cuenta de Facebook">
+            <Field label="Nombre de la página (referencia)">
+              <input name="fb_page_name" defaultValue={fbAccount?.page_name || ""} placeholder="Ej: Mi Negocio MX" className={inputClass} />
+            </Field>
+            <Field label="Page ID">
+              <input name="fb_page_id" defaultValue={fbAccount?.page_id || ""} placeholder="Ej: 123456789012345" className={inputClass} />
+              <p className="text-xs text-slate-400 mt-1">Configuración de la Página → Sobre esta Page → ID de página</p>
+            </Field>
+            <Field label="Access Token permanente">
+              <input name="fb_access_token" defaultValue={fbAccount?.access_token || ""} placeholder="EAA..." className={inputClass} />
+              <p className="text-xs text-slate-400 mt-1">Deja vacío para no modificar el token actual.</p>
+            </Field>
+          </Section>
 
           <Section title="Cuenta de WhatsApp">
             <Field label="Phone Number ID">

@@ -77,7 +77,69 @@ export async function updateBusiness(businessId: string, formData: FormData) {
   const accessToken = String(formData.get("access_token") || "").trim();
   const displayPhone = String(formData.get("display_phone") || "").trim();
 
+  const igPageId = String(formData.get("ig_page_id") || "").trim();
+  const igAccountId = String(formData.get("ig_account_id") || "").trim();
+  const igPageName = String(formData.get("ig_page_name") || "").trim();
+  const igAccessToken = String(formData.get("ig_access_token") || "").trim();
+
+  const fbPageId = String(formData.get("fb_page_id") || "").trim();
+  const fbPageName = String(formData.get("fb_page_name") || "").trim();
+  const fbAccessToken = String(formData.get("fb_access_token") || "").trim();
+
   await supabase.from("businesses").update({ name, slug }).eq("id", businessId);
+
+  // Upsert Instagram
+  if (igPageId) {
+    const { data: existing } = await supabase
+      .from("social_accounts")
+      .select("id, access_token")
+      .eq("business_id", businessId)
+      .eq("platform", "instagram")
+      .maybeSingle();
+
+    const data: Record<string, unknown> = {
+      business_id: businessId,
+      platform: "instagram",
+      page_id: igPageId,
+      instagram_account_id: igAccountId || null,
+      page_name: igPageName || null,
+      is_active: true,
+    };
+    if (igAccessToken) data.access_token = igAccessToken;
+    else if (existing?.access_token) data.access_token = existing.access_token;
+
+    if (existing) {
+      await supabase.from("social_accounts").update(data).eq("id", existing.id);
+    } else if (igAccessToken) {
+      await supabase.from("social_accounts").insert(data);
+    }
+  }
+
+  // Upsert Facebook
+  if (fbPageId) {
+    const { data: existing } = await supabase
+      .from("social_accounts")
+      .select("id, access_token")
+      .eq("business_id", businessId)
+      .eq("platform", "facebook")
+      .maybeSingle();
+
+    const data: Record<string, unknown> = {
+      business_id: businessId,
+      platform: "facebook",
+      page_id: fbPageId,
+      page_name: fbPageName || null,
+      is_active: true,
+    };
+    if (fbAccessToken) data.access_token = fbAccessToken;
+    else if (existing?.access_token) data.access_token = existing.access_token;
+
+    if (existing) {
+      await supabase.from("social_accounts").update(data).eq("id", existing.id);
+    } else if (fbAccessToken) {
+      await supabase.from("social_accounts").insert(data);
+    }
+  }
 
   if (phoneNumberId) {
     const { data: waRows } = await supabase
