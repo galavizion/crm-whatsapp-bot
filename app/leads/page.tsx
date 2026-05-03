@@ -483,7 +483,7 @@ export default async function LeadsPage({
                                 </div>
                               </div>
                             </td>
-                            <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                            <td className="px-4 py-3">
                               <StatusDropdown id={lead.id} current={lead.estado || ""} />
                             </td>
                             {isGod && (
@@ -494,7 +494,7 @@ export default async function LeadsPage({
                               </td>
                             )}
                             {isAdmin && !isGod && (
-                              <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                              <td className="px-4 py-3">
                                 <div className="flex flex-col gap-1.5">
                                   {assignedUser ? (
                                     <div className="flex items-center gap-1.5">

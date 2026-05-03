@@ -12,11 +12,14 @@ export function ClickableRow({
   className?: string;
 }) {
   const router = useRouter();
+
+  const handleClick = (e: React.MouseEvent<HTMLTableRowElement>) => {
+    if ((e.target as HTMLElement).closest("a, button, select, input, label")) return;
+    router.push(href);
+  };
+
   return (
-    <tr
-      onClick={() => router.push(href)}
-      className={`cursor-pointer ${className ?? ""}`}
-    >
+    <tr onClick={handleClick} className={`cursor-pointer ${className ?? ""}`}>
       {children}
     </tr>
   );
