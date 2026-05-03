@@ -76,7 +76,6 @@ function getStatusCount(contactos: Contacto[], status: string) {
 
 function formatDate(dateString: string | null) {
   if (!dateString) return "Sin fecha";
-
   try {
     return new Intl.DateTimeFormat("es-MX", {
       dateStyle: "medium",
@@ -85,6 +84,54 @@ function formatDate(dateString: string | null) {
   } catch {
     return "Sin fecha";
   }
+}
+
+function relativeDate(dateString: string | null) {
+  if (!dateString) return "—";
+  try {
+    const d = new Date(dateString);
+    const diff = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (diff < 60) return "ahora";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
+    return new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short" }).format(d);
+  } catch {
+    return "—";
+  }
+}
+
+const AVATAR_COLORS = ["#8c7ac6", "#c84f92", "#2ec4a5", "#f59e0b", "#3b82f6"];
+
+function getInitials(name: string | null) {
+  if (!name) return "?";
+  return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+}
+
+function getAvatarColor(name: string | null) {
+  if (!name) return AVATAR_COLORS[0];
+  return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+}
+
+function getBadgeClasses(estado: string | null) {
+  const v = (estado || "").toLowerCase();
+  if (v === "interesado") return "bg-blue-100 text-blue-800";
+  if (v === "contactar") return "bg-amber-100 text-amber-800";
+  if (v === "contactado") return "bg-violet-100 text-violet-800";
+  if (v === "cliente") return "bg-emerald-100 text-emerald-800";
+  if (v === "perdido") return "bg-rose-100 text-rose-800";
+  return "bg-neutral-100 text-neutral-700";
+}
+
+function getEstadoLabel(estado: string | null) {
+  const map: Record<string, string> = {
+    interesado: "Interesado",
+    contactar: "Llamar",
+    contactado: "Contactado",
+    cliente: "Cliente",
+    perdido: "Perdido",
+  };
+  return map[(estado || "").toLowerCase()] || estado || "Sin estado";
 }
 
 const GOD_EMAIL = "rene.galaviz@gmail.com";
@@ -178,10 +225,6 @@ export default async function DashboardPage() {
                 : "Aquí ves únicamente tus leads y tus pendientes."}
             </p>
 
-            <div className="mt-3 space-y-1 text-sm text-neutral-600">
-              <p>Sesión activa: {user.email}</p>
-              <p>Rol: {role}</p>
-            </div>
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -241,16 +284,10 @@ export default async function DashboardPage() {
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-sm font-medium opacity-80">{status.label}</p>
-                      <p className="mt-2 text-3xl font-bold">{count}</p>
+                      <p className="text-[11px] font-bold uppercase tracking-wide opacity-70">{status.label}</p>
+                      <p className="mt-1.5 text-3xl font-bold">{count}</p>
                     </div>
-
-                    <Icon className="h-5 w-5 opacity-80 transition group-hover:scale-110" />
-                  </div>
-
-                  <div className="mt-4 flex items-center gap-1 text-sm font-medium opacity-80">
-                    Ver lista
-                    <ArrowUpRight className="h-4 w-4" />
+                    <Icon className="h-4 w-4 opacity-50 transition group-hover:scale-110" />
                   </div>
                 </Link>
               );
@@ -283,41 +320,33 @@ export default async function DashboardPage() {
                   <Link
                     key={lead.id}
                     href={`/leads/${lead.id}`}
-                    className="block p-4 transition hover:bg-neutral-50"
+                    className="flex items-center gap-3 px-4 py-3 transition hover:bg-neutral-50/80"
                   >
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="truncate font-semibold text-neutral-900">
-                            {lead.nombre || "Sin nombre"}
-                          </h3>
-
-                          <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-700">
-                            {lead.estado || "sin estado"}
-                          </span>
-                        </div>
-
-                        <p className="mt-1 text-sm text-neutral-600">
-                          {lead.whatsapp || "Sin WhatsApp"}
-                        </p>
-
-                        {lead.necesidad && (
-                          <p className="mt-1 line-clamp-1 text-sm text-neutral-500">
-                            Necesidad: {lead.necesidad}
-                          </p>
-                        )}
-
-                        {lead.resumen && (
-                          <p className="mt-1 line-clamp-2 text-sm text-neutral-500">
-                            {lead.resumen}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="shrink-0 text-sm text-neutral-500">
-                        {formatDate(lead.ultima_respuesta || lead.created_at)}
-                      </div>
+                    <div
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
+                      style={{ background: getAvatarColor(lead.nombre) }}
+                    >
+                      {getInitials(lead.nombre)}
                     </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate text-sm font-semibold text-neutral-900">
+                          {lead.nombre || "Sin nombre"}
+                        </span>
+                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${getBadgeClasses(lead.estado)}`}>
+                          {getEstadoLabel(lead.estado)}
+                        </span>
+                      </div>
+                      {lead.necesidad && (
+                        <p className="mt-0.5 truncate text-xs text-neutral-500">{lead.necesidad}</p>
+                      )}
+                    </div>
+                    <span
+                      className="shrink-0 text-xs font-semibold text-neutral-500"
+                      title={formatDate(lead.ultima_respuesta || lead.created_at)}
+                    >
+                      {relativeDate(lead.ultima_respuesta || lead.created_at)}
+                    </span>
                   </Link>
                 ))}
               </div>

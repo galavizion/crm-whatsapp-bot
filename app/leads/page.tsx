@@ -108,6 +108,38 @@ function buildLeadsUrl({ estado, view, negocio }: { estado?: string; view?: stri
   return qs ? `/leads?${qs}` : "/leads";
 }
 
+const AVATAR_COLORS = ["#8c7ac6", "#c84f92", "#2ec4a5", "#f59e0b", "#3b82f6"];
+
+function getInitials(name: string | null) {
+  if (!name) return "?";
+  return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+}
+
+function getAvatarColor(name: string | null) {
+  if (!name) return AVATAR_COLORS[0];
+  return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+}
+
+function emailToName(email: string | null | undefined) {
+  if (!email) return "Sin asignar";
+  return email.split("@")[0];
+}
+
+function relativeDate(dateString: string | null) {
+  if (!dateString) return "—";
+  try {
+    const d = new Date(dateString);
+    const diff = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (diff < 60) return "ahora";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
+    return new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short" }).format(d);
+  } catch {
+    return "—";
+  }
+}
+
 export default async function LeadsPage({
   searchParams,
 }: {
@@ -416,53 +448,67 @@ export default async function LeadsPage({
                 <div className="p-6 text-sm text-neutral-500">No hay leads para mostrar.</div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm">
-                    <thead className="bg-neutral-50">
-                      <tr className="text-left text-neutral-600">
-                        <th className="px-4 py-3 font-medium">Nombre</th>
-                        <th className="px-4 py-3 font-medium">Tel / ID</th>
-                        <th className="px-4 py-3 font-medium">Estado</th>
-                        {isGod && <th className="px-4 py-3 font-medium">Negocio</th>}
-                        {isAdmin && !isGod && <th className="px-4 py-3 font-medium">Asignado</th>}
-                        <th className="px-4 py-3 font-medium">Necesidad</th>
-                        <th className="px-4 py-3 font-medium">Última actividad</th>
-                        <th className="px-4 py-3 font-medium">Detalle</th>
+                  <table className="min-w-full">
+                    <thead>
+                      <tr className="border-b border-neutral-100 bg-neutral-50">
+                        <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Nombre</th>
+                        <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Estado</th>
+                        {isGod && <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Negocio</th>}
+                        {isAdmin && !isGod && <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Asignado</th>}
+                        <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Necesidad</th>
+                        <th className="px-4 py-3 text-right text-[11px] font-bold uppercase tracking-wide text-neutral-500">Actividad</th>
+                        <th className="w-16 px-4 py-3"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-neutral-100">
+                    <tbody>
                       {contactos.map((lead) => {
                         const assignedUser = sellerOptions.find((s) => s.user_id === lead.assigned_user_id);
+                        const assignedName = emailToName(assignedUser?.email);
                         return (
-                          <tr key={lead.id} className="align-top">
-                            <td className="px-4 py-4">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-neutral-900">{lead.nombre || "Sin nombre"}</span>
-                                {(() => { const b = getCanalBadge(lead.canal); return <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${b.cls}`}>{b.label}</span>; })()}
+                          <tr key={lead.id} className="border-b border-neutral-100 last:border-0 transition-colors hover:bg-neutral-50/60">
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2.5">
+                                <div
+                                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
+                                  style={{ background: getAvatarColor(lead.nombre) }}
+                                >
+                                  {getInitials(lead.nombre)}
+                                </div>
+                                <div>
+                                  <div className="text-sm font-semibold leading-tight text-neutral-900">{lead.nombre || "Sin nombre"}</div>
+                                  <div className="mt-0.5 flex items-center gap-1.5">
+                                    <span className="text-[11px] text-neutral-400">{lead.whatsapp || "—"}</span>
+                                    {(() => { const b = getCanalBadge(lead.canal); return <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${b.cls}`}>{b.label}</span>; })()}
+                                  </div>
+                                </div>
                               </div>
-                              {lead.resumen && (
-                                <div className="mt-1 line-clamp-2 max-w-xs text-xs text-neutral-500">{lead.resumen}</div>
-                              )}
                             </td>
-                            <td className="px-4 py-4 text-neutral-700">{lead.whatsapp || "Sin contacto"}</td>
-                            <td className="px-4 py-4">
-                              <div className="flex flex-col gap-2">
-                                <span className={`inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-semibold ${getBadgeClasses(lead.estado)}`}>
-                                  {getEstadoLabel(lead.estado)}
-                                </span>
-                                <StatusDropdown id={lead.id} current={lead.estado || ""} />
-                              </div>
+                            <td className="px-4 py-3">
+                              <StatusDropdown id={lead.id} current={lead.estado || ""} />
                             </td>
                             {isGod && (
-                              <td className="px-4 py-4">
-                                <span className="text-sm text-indigo-600 font-medium">
+                              <td className="px-4 py-3">
+                                <span className="text-sm font-medium text-indigo-600">
                                   {lead.business_id ? (businessMap[lead.business_id] || "—") : "—"}
                                 </span>
                               </td>
                             )}
                             {isAdmin && !isGod && (
-                              <td className="px-4 py-4">
-                                <div className="flex flex-col gap-2">
-                                  <div className="text-sm text-neutral-700">{assignedUser?.email || "Sin asignar"}</div>
+                              <td className="px-4 py-3">
+                                <div className="flex flex-col gap-1.5">
+                                  {assignedUser ? (
+                                    <div className="flex items-center gap-1.5">
+                                      <div
+                                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold text-white"
+                                        style={{ background: getAvatarColor(assignedName) }}
+                                      >
+                                        {getInitials(assignedName)}
+                                      </div>
+                                      <span className="text-xs font-medium text-neutral-700">{assignedName}</span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-xs italic text-neutral-400">Sin asignar</span>
+                                  )}
                                   <AssignLeadDropdown
                                     leadId={lead.id}
                                     currentAssignedUserId={lead.assigned_user_id || ""}
@@ -471,19 +517,24 @@ export default async function LeadsPage({
                                 </div>
                               </td>
                             )}
-                            <td className="px-4 py-4">
-                              <div className="max-w-md text-neutral-700">{lead.necesidad || "Sin necesidad detectada"}</div>
+                            <td className="px-4 py-3 max-w-55">
+                              <div className="truncate text-xs text-neutral-500">{lead.necesidad || "—"}</div>
                             </td>
-                            <td className="px-4 py-4 text-neutral-500">
-                              {formatDate(lead.ultima_respuesta || lead.created_at)}
+                            <td className="px-4 py-3 text-right">
+                              <span
+                                className="text-xs font-semibold text-neutral-700"
+                                title={formatDate(lead.ultima_respuesta || lead.created_at)}
+                              >
+                                {relativeDate(lead.ultima_respuesta || lead.created_at)}
+                              </span>
                             </td>
-                            <td className="px-4 py-4">
+                            <td className="px-4 py-3">
                               <Link
                                 href={`/leads/${lead.id}`}
-                                className="inline-flex items-center gap-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
+                                className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-100"
                               >
                                 Ver
-                                <ArrowUpRight className="h-4 w-4" />
+                                <ArrowUpRight className="h-3 w-3" />
                               </Link>
                             </td>
                           </tr>
