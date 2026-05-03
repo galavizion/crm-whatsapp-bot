@@ -96,9 +96,14 @@ export default async function EditarNegocioPage({
               {[
                 { label: "Nombre", value: business.name },
                 { label: "Slug", value: business.slug },
-                { label: "Phone Number ID", value: wa?.phone_number_id || "—" },
-                { label: "Número visible", value: wa?.display_phone || "—" },
-                { label: "Access Token", value: wa?.access_token ? "••••••••" + wa.access_token.slice(-6) : "—" },
+                { label: "WA Phone Number ID", value: wa?.phone_number_id || "—" },
+                { label: "WA Número visible", value: wa?.display_phone || "—" },
+                { label: "WA Access Token", value: wa?.access_token ? "••••••••" + wa.access_token.slice(-6) : "—" },
+                { label: "IG Page ID", value: igAccount?.page_id || "—" },
+                { label: "IG Account ID", value: igAccount?.instagram_account_id || "—" },
+                { label: "IG Access Token", value: igAccount?.access_token ? "••••••••" + igAccount.access_token.slice(-6) : "—" },
+                { label: "FB Page ID", value: fbAccount?.page_id || "—" },
+                { label: "FB Access Token", value: fbAccount?.access_token ? "••••••••" + fbAccount.access_token.slice(-6) : "—" },
               ].map(({ label, value }) => (
                 <li key={label} className="text-sm text-emerald-700 flex gap-2">
                   <span className="font-medium">{label}:</span>
