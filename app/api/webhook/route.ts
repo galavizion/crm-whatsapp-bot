@@ -35,6 +35,13 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     console.log("📨 RAW:", JSON.stringify(body));
+
+    // Guard: ignorar eventos que no sean de WhatsApp (Instagram, Facebook Pages, etc.)
+    if (body.object && body.object !== "whatsapp_business_account") {
+      console.log(`⏭️ Evento ignorado — object: ${body.object}`);
+      return new NextResponse("ok", { status: 200 });
+    }
+
     const entry = body.entry?.[0];
     const change = entry?.changes?.[0];
     const value = change?.value;
