@@ -95,6 +95,43 @@ export async function POST(req: NextRequest) {
           return new NextResponse("ok", { status: 200 });
         }
 
+        // Upsert contacto desde comentario Instagram
+        let igCommentName: string | null = null;
+        try {
+          const profileRes = await fetch(
+            `https://graph.instagram.com/v23.0/${commentAuthorId}?fields=name,username&access_token=${igCommentAccount.access_token}`
+          );
+          const profileData = await profileRes.json();
+          igCommentName = profileData.name || profileData.username || null;
+        } catch {}
+
+        const { data: igExisting } = await supabase
+          .from("contactos")
+          .select("id, nombre, veces_contacto")
+          .eq("whatsapp", commentAuthorId)
+          .eq("business_id", igCommentAccount.business_id)
+          .maybeSingle();
+
+        if (!igExisting) {
+          await supabase.from("contactos").insert({
+            whatsapp: commentAuthorId,
+            business_id: igCommentAccount.business_id,
+            estado: "interesado",
+            canal: "instagram",
+            nombre: igCommentName,
+            necesidad: commentText,
+            veces_contacto: 1,
+            ultima_respuesta: new Date().toISOString(),
+          });
+          console.log("✅ Contacto creado desde comentario Instagram:", commentAuthorId);
+        } else {
+          await supabase.from("contactos").update({
+            ultima_respuesta: new Date().toISOString(),
+            veces_contacto: (igExisting.veces_contacto || 0) + 1,
+            ...(!igExisting.nombre && igCommentName ? { nombre: igCommentName } : {}),
+          }).eq("id", igExisting.id);
+        }
+
         const { public_reply, open_dm, dm_message } = await generateCommentReply({
           business: igCommentBusiness,
           commentText,
@@ -112,17 +149,16 @@ export async function POST(req: NextRequest) {
           console.log("✅ Respuesta pública al comentario enviada");
         }
 
-        if (open_dm && dm_message && isTopLevelComment && commentAuthorId) {
-          const dmResult = await sendInstagramMessage({
+        if (open_dm && dm_message && isTopLevelComment && commentId) {
+          const dmResult = await sendInstagramPrivateReply({
             accessToken: igCommentAccount.access_token,
-            instagramAccountId: igAccountId,
-            to: commentAuthorId,
-            body: dm_message,
+            commentId,
+            message: dm_message,
           });
           if (!dmResult.ok) {
-            console.error("❌ Error enviando DM desde comentario Instagram:", JSON.stringify(dmResult.error));
+            console.error("❌ Error enviando private reply Instagram:", JSON.stringify(dmResult.error));
           } else {
-            console.log("✅ DM enviado al autor del comentario Instagram");
+            console.log("✅ Instagram private reply enviado al autor del comentario");
           }
         }
 
@@ -280,7 +316,9 @@ export async function POST(req: NextRequest) {
       // ── Comentarios ──
       if (change?.field === "feed" && change?.value?.item === "comment") {
         const verb: string = change.value?.verb || "";
-        const commentId: string = change.value?.comment_id || "";
+        const commentIdRaw: string = change.value?.comment_id || "";
+        // El webhook da "{post_short_id}_{comment_id}" — Graph API necesita solo el comment_id
+        const commentId: string = commentIdRaw.includes("_") ? commentIdRaw.split("_").slice(-1)[0] : commentIdRaw;
         const commentText: string = change.value?.message || "";
         const pageId: string = body.entry?.[0]?.id || "";
         const commentAuthorId: string = change.value?.from?.id || "";
@@ -328,6 +366,36 @@ export async function POST(req: NextRequest) {
 
         if (fbCommentBusiness?.status === "suspended" || fbCommentBusiness?.status === "cancelled") {
           return new NextResponse("ok", { status: 200 });
+        }
+
+        // Upsert contacto desde comentario Facebook
+        const fbCommentName: string | null = change.value?.from?.name || null;
+
+        const { data: fbExisting } = await supabase
+          .from("contactos")
+          .select("id, nombre, veces_contacto")
+          .eq("whatsapp", commentAuthorId)
+          .eq("business_id", fbCommentAccount.business_id)
+          .maybeSingle();
+
+        if (!fbExisting) {
+          await supabase.from("contactos").insert({
+            whatsapp: commentAuthorId,
+            business_id: fbCommentAccount.business_id,
+            estado: "interesado",
+            canal: "facebook",
+            nombre: fbCommentName,
+            necesidad: commentText,
+            veces_contacto: 1,
+            ultima_respuesta: new Date().toISOString(),
+          });
+          console.log("✅ Contacto creado desde comentario Facebook:", commentAuthorId);
+        } else {
+          await supabase.from("contactos").update({
+            ultima_respuesta: new Date().toISOString(),
+            veces_contacto: (fbExisting.veces_contacto || 0) + 1,
+            ...(!fbExisting.nombre && fbCommentName ? { nombre: fbCommentName } : {}),
+          }).eq("id", fbExisting.id);
         }
 
         const { public_reply, open_dm, dm_message } = await generateCommentReply({
