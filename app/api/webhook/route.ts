@@ -58,6 +58,14 @@ export async function POST(req: NextRequest) {
         const commentId: string = change.value?.id || "";
         const commentText: string = change.value?.text || "";
         const igAccountId: string = body.entry?.[0]?.id || "";
+        const commentAuthorId: string = change.value?.from?.id || "";
+        const isTopLevelComment: boolean = !change.value?.parent_id;
+
+        // Ignorar comentarios propios del bot (evita loop infinito)
+        if (commentAuthorId === igAccountId) {
+          console.log("⏭️ Comentario propio ignorado");
+          return new NextResponse("ok", { status: 200 });
+        }
 
         if (!commentText || !commentId) {
           return new NextResponse("ok", { status: 200 });
@@ -104,7 +112,7 @@ export async function POST(req: NextRequest) {
           console.log("✅ Respuesta pública al comentario enviada");
         }
 
-        if (open_dm && dm_message) {
+        if (open_dm && dm_message && isTopLevelComment) {
           const dmResult = await sendInstagramPrivateReply({
             accessToken: igCommentAccount.access_token,
             commentId,
@@ -262,6 +270,14 @@ export async function POST(req: NextRequest) {
         const commentId: string = change.value?.comment_id || "";
         const commentText: string = change.value?.message || "";
         const pageId: string = body.entry?.[0]?.id || "";
+        const commentAuthorId: string = change.value?.from?.id || "";
+        const isTopLevelComment: boolean = !change.value?.parent_id;
+
+        // Ignorar comentarios propios del bot (evita loop infinito)
+        if (commentAuthorId === pageId) {
+          console.log("⏭️ Comentario propio de la página ignorado");
+          return new NextResponse("ok", { status: 200 });
+        }
 
         if (!commentText || !commentId) {
           return new NextResponse("ok", { status: 200 });
@@ -308,7 +324,7 @@ export async function POST(req: NextRequest) {
           console.log("✅ Respuesta pública al comentario Facebook enviada");
         }
 
-        if (open_dm && dm_message) {
+        if (open_dm && dm_message && isTopLevelComment) {
           const dmResult = await sendFacebookPrivateReply({
             accessToken: fbCommentAccount.access_token,
             commentId,
