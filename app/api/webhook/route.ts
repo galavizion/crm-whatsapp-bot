@@ -9,7 +9,7 @@ import { sendInstagramMessage } from "@/lib/ai/sendInstagramMessage";
 import { sendFacebookMessage } from "@/lib/ai/sendFacebookMessage";
 import { generateCommentReply } from "@/lib/ai/commentReply";
 import { sendInstagramCommentReply, sendInstagramPrivateReply } from "@/lib/ai/sendInstagramCommentReply";
-import { sendFacebookCommentReply, sendFacebookPrivateReply } from "@/lib/ai/sendFacebookCommentReply";
+import { sendFacebookCommentReply } from "@/lib/ai/sendFacebookCommentReply";
 
 export const runtime = "nodejs";
 
@@ -325,7 +325,7 @@ export async function POST(req: NextRequest) {
 
         const pubResult = await sendFacebookCommentReply({
           accessToken: fbCommentAccount.access_token,
-          commentId,
+          commentId: postId,
           message: public_reply,
         });
         if (!pubResult.ok) {
@@ -334,16 +334,17 @@ export async function POST(req: NextRequest) {
           console.log("✅ Respuesta pública al comentario Facebook enviada");
         }
 
-        if (open_dm && dm_message && isTopLevelComment) {
-          const dmResult = await sendFacebookPrivateReply({
+        if (open_dm && dm_message && isTopLevelComment && commentAuthorId) {
+          const dmResult = await sendFacebookMessage({
             accessToken: fbCommentAccount.access_token,
-            commentId,
-            message: dm_message,
+            pageId,
+            to: commentAuthorId,
+            body: dm_message,
           });
           if (!dmResult.ok) {
-            console.error("❌ Error enviando private reply Facebook:", JSON.stringify(dmResult.error));
+            console.error("❌ Error enviando DM Facebook desde comentario:", JSON.stringify(dmResult.error));
           } else {
-            console.log("✅ Private reply Facebook enviado");
+            console.log("✅ DM Facebook enviado al autor del comentario");
           }
         }
 
