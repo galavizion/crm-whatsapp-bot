@@ -6,7 +6,9 @@
       "Bash(git tag *)",
       "Bash(git commit -m ' *)",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\rene\\\\Documents\\\\dashboard-ranking\" -Directory)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\rene\\\\Documents\\\\dashboard-ranking\" -Recurse -Depth 2)",
+      "Bash(Select-Object -First 50)"
     ]
   }
 }

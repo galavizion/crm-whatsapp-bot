@@ -188,18 +188,28 @@ export async function POST(req: NextRequest) {
         .eq("whatsapp", senderId)
         .maybeSingle();
 
+      // Fetch nombre desde Instagram Graph API
+      let igProfileName: string | null = null;
+      try {
+        const igProfileRes = await fetch(
+          `https://graph.instagram.com/v23.0/${senderId}?fields=name,username&access_token=${accessToken}`
+        );
+        const igProfileData = await igProfileRes.json();
+        igProfileName = igProfileData.name || igProfileData.username || null;
+      } catch {}
+
       if (!contacto) {
         const { data: nuevo } = await supabase
           .from("contactos")
-          .insert({ whatsapp: senderId, business_id: businessId, estado: "interesado", veces_contacto: 1 })
+          .insert({ whatsapp: senderId, business_id: businessId, estado: "interesado", veces_contacto: 1, canal: "instagram", nombre: igProfileName })
           .select()
           .maybeSingle();
         contacto = nuevo;
       } else {
-        await supabase
-          .from("contactos")
-          .update({ veces_contacto: (contacto.veces_contacto || 0) + 1 })
-          .eq("id", contacto.id);
+        const igUpdate: Record<string, unknown> = { veces_contacto: (contacto.veces_contacto || 0) + 1 };
+        if (!contacto.canal) igUpdate.canal = "instagram";
+        if (igProfileName && (!contacto.nombre || contacto.nombre === "Desconocido")) igUpdate.nombre = igProfileName;
+        await supabase.from("contactos").update(igUpdate).eq("id", contacto.id);
       }
 
       const { data: igHistorial } = await supabase
@@ -409,18 +419,30 @@ export async function POST(req: NextRequest) {
         .eq("whatsapp", senderId)
         .maybeSingle();
 
+      // Fetch nombre desde Facebook Graph API
+      let fbProfileName: string | null = null;
+      try {
+        const fbProfileRes = await fetch(
+          `https://graph.facebook.com/v23.0/${senderId}?fields=first_name,last_name&access_token=${accessToken}`
+        );
+        const fbProfileData = await fbProfileRes.json();
+        const first = fbProfileData.first_name || "";
+        const last = fbProfileData.last_name || "";
+        fbProfileName = [first, last].filter(Boolean).join(" ") || null;
+      } catch {}
+
       if (!fbContacto) {
         const { data: nuevo } = await supabase
           .from("contactos")
-          .insert({ whatsapp: senderId, business_id: businessId, estado: "interesado", veces_contacto: 1 })
+          .insert({ whatsapp: senderId, business_id: businessId, estado: "interesado", veces_contacto: 1, canal: "facebook", nombre: fbProfileName })
           .select()
           .maybeSingle();
         fbContacto = nuevo;
       } else {
-        await supabase
-          .from("contactos")
-          .update({ veces_contacto: (fbContacto.veces_contacto || 0) + 1 })
-          .eq("id", fbContacto.id);
+        const fbUpdate: Record<string, unknown> = { veces_contacto: (fbContacto.veces_contacto || 0) + 1 };
+        if (!fbContacto.canal) fbUpdate.canal = "facebook";
+        if (fbProfileName && (!fbContacto.nombre || fbContacto.nombre === "Desconocido")) fbUpdate.nombre = fbProfileName;
+        await supabase.from("contactos").update(fbUpdate).eq("id", fbContacto.id);
       }
 
       const { data: fbHistorial } = await supabase
@@ -621,7 +643,8 @@ export async function POST(req: NextRequest) {
           estado: "interesado",
           veces_contacto: 1,
           assigned_user_id: assignedUserId,
-          nombre: profileName  // ✅ NUEVO: Guardar nombre del perfil
+          nombre: profileName,
+          canal: "whatsapp",
         })
         .select()
         .maybeSingle();
@@ -638,6 +661,7 @@ export async function POST(req: NextRequest) {
         updateData.nombre = profileName;
         console.log("📝 Actualizando nombre a:", profileName);
       }
+      if (!contacto.canal) updateData.canal = "whatsapp";
 
       await supabase
         .from("contactos")

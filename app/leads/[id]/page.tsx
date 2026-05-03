@@ -36,6 +36,7 @@ type Contacto = {
   veces_contacto: number | null;
   ultima_respuesta: string | null;
   notas?: string | null;
+  canal?: string | null;
 };
 
 type Mensaje = {
@@ -172,9 +173,20 @@ export default async function LeadDetailPage({ params }: Props) {
                   {initials}
                 </div>
                 <div>
-                  <h1 className="text-lg md:text-xl font-bold text-white">
-                    {contacto.nombre || "Sin nombre"}
-                  </h1>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-lg md:text-xl font-bold text-white">
+                      {contacto.nombre || "Sin nombre"}
+                    </h1>
+                    {contacto.canal === "instagram" && (
+                      <span className="rounded-full bg-pink-500/30 px-2 py-0.5 text-[10px] font-semibold text-white">Instagram</span>
+                    )}
+                    {contacto.canal === "facebook" && (
+                      <span className="rounded-full bg-blue-500/30 px-2 py-0.5 text-[10px] font-semibold text-white">Facebook</span>
+                    )}
+                    {(!contacto.canal || contacto.canal === "whatsapp") && (
+                      <span className="rounded-full bg-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-white">WhatsApp</span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2 mt-1">
                     <Phone className="w-3.5 h-3.5 text-white    " />
                     <span className="text-white    text-sm">{contacto.whatsapp}</span>

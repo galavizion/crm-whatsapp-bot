@@ -30,6 +30,7 @@ type Contacto = {
   ultima_respuesta: string | null;
   assigned_user_id: string | null;
   business_id?: string | null;
+  canal?: string | null;
 };
 
 type Business = {
@@ -80,6 +81,12 @@ function getEstadoLabel(estado: string | null) {
   if (!estado) return "Sin estado";
   const found = ESTADOS_TABLA.find((e) => e.key === estado.toLowerCase());
   return found?.label || estado;
+}
+
+function getCanalBadge(canal: string | null | undefined) {
+  if (canal === "instagram") return { label: "Instagram", cls: "bg-pink-100 text-pink-700" };
+  if (canal === "facebook") return { label: "Facebook", cls: "bg-blue-100 text-blue-700" };
+  return { label: "WhatsApp", cls: "bg-emerald-100 text-emerald-700" };
 }
 
 function getBadgeClasses(estado: string | null) {
@@ -138,7 +145,7 @@ export default async function LeadsPage({
 
     let q = admin
       .from("contactos")
-      .select("id, whatsapp, nombre, resumen, ultimo_tema, necesidad, estado, veces_contacto, created_at, ultima_respuesta, assigned_user_id, business_id")
+      .select("id, whatsapp, nombre, resumen, ultimo_tema, necesidad, estado, veces_contacto, created_at, ultima_respuesta, assigned_user_id, business_id, canal")
       .order("ultima_respuesta", { ascending: false });
 
     if (negocioFiltro) q = q.eq("business_id", negocioFiltro);
@@ -174,7 +181,7 @@ export default async function LeadsPage({
 
     let contactosQuery = supabase
       .from("contactos")
-      .select("id, whatsapp, nombre, resumen, ultimo_tema, necesidad, estado, veces_contacto, created_at, ultima_respuesta, assigned_user_id")
+      .select("id, whatsapp, nombre, resumen, ultimo_tema, necesidad, estado, veces_contacto, created_at, ultima_respuesta, assigned_user_id, canal")
       .order("ultima_respuesta", { ascending: false });
 
     if (!isAdmin) contactosQuery = contactosQuery.eq("assigned_user_id", user.id);
@@ -347,9 +354,12 @@ export default async function LeadsPage({
                             <div key={lead.id} className="rounded-lg border border-neutral-200 bg-white p-2 shadow-sm">
                               <div className="mb-2 flex items-start justify-between gap-2">
                                 <div className="min-w-0">
-                                  <h3 className="truncate text-xs font-semibold text-neutral-900">
-                                    {lead.nombre || "Sin nombre"}
-                                  </h3>
+                                  <div className="flex items-center gap-1.5">
+                                    <h3 className="truncate text-xs font-semibold text-neutral-900">
+                                      {lead.nombre || "Sin nombre"}
+                                    </h3>
+                                    {(() => { const b = getCanalBadge(lead.canal); return <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${b.cls}`}>{b.label}</span>; })()}
+                                  </div>
                                   <p className="truncate text-[11px] text-neutral-500">
                                     {lead.whatsapp || "Sin WhatsApp"}
                                   </p>
@@ -425,7 +435,10 @@ export default async function LeadsPage({
                         return (
                           <tr key={lead.id} className="align-top">
                             <td className="px-4 py-4">
-                              <div className="font-medium text-neutral-900">{lead.nombre || "Sin nombre"}</div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-neutral-900">{lead.nombre || "Sin nombre"}</span>
+                                {(() => { const b = getCanalBadge(lead.canal); return <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${b.cls}`}>{b.label}</span>; })()}
+                              </div>
                               {lead.resumen && (
                                 <div className="mt-1 line-clamp-2 max-w-xs text-xs text-neutral-500">{lead.resumen}</div>
                               )}
@@ -495,7 +508,10 @@ export default async function LeadsPage({
                     <div key={lead.id} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
                       <div className="mb-3 flex items-start justify-between gap-3">
                         <div>
-                          <h3 className="font-semibold text-neutral-900">{lead.nombre || "Sin nombre"}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-neutral-900">{lead.nombre || "Sin nombre"}</h3>
+                            {(() => { const b = getCanalBadge(lead.canal); return <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${b.cls}`}>{b.label}</span>; })()}
+                          </div>
                           <p className="mt-1 text-sm text-neutral-600">{lead.whatsapp || "Sin WhatsApp"}</p>
                           {isGod && lead.business_id && (
                             <p className="mt-0.5 text-xs text-indigo-500 font-medium">
