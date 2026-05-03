@@ -195,8 +195,9 @@ export async function POST(req: NextRequest) {
           `https://graph.instagram.com/v23.0/${senderId}?fields=name,username&access_token=${accessToken}`
         );
         const igProfileData = await igProfileRes.json();
+        console.log("📸 Instagram profile API response:", JSON.stringify(igProfileData));
         igProfileName = igProfileData.name || igProfileData.username || null;
-      } catch {}
+      } catch (e) { console.error("❌ Instagram profile fetch error:", e); }
 
       if (!contacto) {
         const { data: nuevo } = await supabase
@@ -426,10 +427,11 @@ export async function POST(req: NextRequest) {
           `https://graph.facebook.com/v23.0/${senderId}?fields=first_name,last_name&access_token=${accessToken}`
         );
         const fbProfileData = await fbProfileRes.json();
+        console.log("📘 Facebook profile API response:", JSON.stringify(fbProfileData));
         const first = fbProfileData.first_name || "";
         const last = fbProfileData.last_name || "";
         fbProfileName = [first, last].filter(Boolean).join(" ") || null;
-      } catch {}
+      } catch (e) { console.error("❌ Facebook profile fetch error:", e); }
 
       if (!fbContacto) {
         const { data: nuevo } = await supabase

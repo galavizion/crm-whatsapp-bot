@@ -361,7 +361,7 @@ export default async function LeadsPage({
                                     {(() => { const b = getCanalBadge(lead.canal); return <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${b.cls}`}>{b.label}</span>; })()}
                                   </div>
                                   <p className="truncate text-[11px] text-neutral-500">
-                                    {lead.whatsapp || "Sin WhatsApp"}
+                                    {lead.whatsapp || "Sin contacto"}
                                   </p>
                                   {isGod && lead.business_id && (
                                     <p className="truncate text-[11px] text-indigo-500 font-medium">
@@ -420,7 +420,7 @@ export default async function LeadsPage({
                     <thead className="bg-neutral-50">
                       <tr className="text-left text-neutral-600">
                         <th className="px-4 py-3 font-medium">Nombre</th>
-                        <th className="px-4 py-3 font-medium">WhatsApp</th>
+                        <th className="px-4 py-3 font-medium">Tel / ID</th>
                         <th className="px-4 py-3 font-medium">Estado</th>
                         {isGod && <th className="px-4 py-3 font-medium">Negocio</th>}
                         {isAdmin && !isGod && <th className="px-4 py-3 font-medium">Asignado</th>}
@@ -443,7 +443,7 @@ export default async function LeadsPage({
                                 <div className="mt-1 line-clamp-2 max-w-xs text-xs text-neutral-500">{lead.resumen}</div>
                               )}
                             </td>
-                            <td className="px-4 py-4 text-neutral-700">{lead.whatsapp || "Sin WhatsApp"}</td>
+                            <td className="px-4 py-4 text-neutral-700">{lead.whatsapp || "Sin contacto"}</td>
                             <td className="px-4 py-4">
                               <div className="flex flex-col gap-2">
                                 <span className={`inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-semibold ${getBadgeClasses(lead.estado)}`}>
@@ -512,7 +512,7 @@ export default async function LeadsPage({
                             <h3 className="font-semibold text-neutral-900">{lead.nombre || "Sin nombre"}</h3>
                             {(() => { const b = getCanalBadge(lead.canal); return <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${b.cls}`}>{b.label}</span>; })()}
                           </div>
-                          <p className="mt-1 text-sm text-neutral-600">{lead.whatsapp || "Sin WhatsApp"}</p>
+                          <p className="mt-1 text-sm text-neutral-600">{lead.whatsapp || "Sin contacto"}</p>
                           {isGod && lead.business_id && (
                             <p className="mt-0.5 text-xs text-indigo-500 font-medium">
                               {businessMap[lead.business_id] || lead.business_id}
