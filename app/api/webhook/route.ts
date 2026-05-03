@@ -9,7 +9,7 @@ import { sendInstagramMessage } from "@/lib/ai/sendInstagramMessage";
 import { sendFacebookMessage } from "@/lib/ai/sendFacebookMessage";
 import { generateCommentReply } from "@/lib/ai/commentReply";
 import { sendInstagramCommentReply, sendInstagramPrivateReply } from "@/lib/ai/sendInstagramCommentReply";
-import { sendFacebookCommentReply } from "@/lib/ai/sendFacebookCommentReply";
+// import { sendFacebookCommentReply } from "@/lib/ai/sendFacebookCommentReply"; // pendiente App Review
 
 export const runtime = "nodejs";
 
@@ -325,16 +325,13 @@ export async function POST(req: NextRequest) {
           platform: "facebook",
         });
 
-        const pubResult = await sendFacebookCommentReply({
-          accessToken: fbCommentAccount.access_token,
-          commentId: postId,
-          message: public_reply,
-        });
-        if (!pubResult.ok) {
-          console.error("❌ Error respondiendo comentario Facebook:", JSON.stringify(pubResult.error));
-        } else {
-          console.log("✅ Respuesta pública al comentario Facebook enviada");
-        }
+        // Requiere pages_manage_engagement Advanced Access (App Review pendiente)
+        // const pubResult = await sendFacebookCommentReply({
+        //   accessToken: fbCommentAccount.access_token,
+        //   commentId: postId,
+        //   message: public_reply,
+        // });
+        console.log("⏭️ Respuesta pública FB omitida — pendiente App Review");
 
         if (open_dm && dm_message && isTopLevelComment && commentAuthorId) {
           const dmResult = await sendFacebookMessage({
