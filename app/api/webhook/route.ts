@@ -7,6 +7,9 @@ import { extractMemory } from "@/lib/ai/memory";
 import { sendWhatsAppText } from "@/lib/ai/sendWhatsAppText";
 import { sendInstagramMessage } from "@/lib/ai/sendInstagramMessage";
 import { sendFacebookMessage } from "@/lib/ai/sendFacebookMessage";
+import { generateCommentReply } from "@/lib/ai/commentReply";
+import { sendInstagramCommentReply, sendInstagramPrivateReply } from "@/lib/ai/sendInstagramCommentReply";
+import { sendFacebookCommentReply, sendFacebookPrivateReply } from "@/lib/ai/sendFacebookCommentReply";
 
 export const runtime = "nodejs";
 
@@ -45,10 +48,79 @@ export async function POST(req: NextRequest) {
       return new NextResponse("ok", { status: 200 });
     }
 
-    // ── INSTAGRAM DM HANDLER ──────────────────────────────────────────────────
+    // ── INSTAGRAM HANDLER (DMs + Comentarios) ────────────────────────────────
     if (body.object === "instagram") {
       const messaging = body.entry?.[0]?.messaging?.[0];
+      const change = body.entry?.[0]?.changes?.[0];
 
+      // ── Comentarios ──
+      if (change?.field === "comments") {
+        const commentId: string = change.value?.id || "";
+        const commentText: string = change.value?.text || "";
+        const igAccountId: string = body.entry?.[0]?.id || "";
+
+        if (!commentText || !commentId) {
+          return new NextResponse("ok", { status: 200 });
+        }
+
+        console.log(`💬 Instagram comentario | id: ${commentId} | texto: "${commentText}"`);
+
+        const { data: igCommentAccount } = await supabase
+          .from("social_accounts")
+          .select("business_id, access_token")
+          .eq("instagram_account_id", igAccountId)
+          .eq("platform", "instagram")
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (!igCommentAccount?.business_id) {
+          return new NextResponse("ok", { status: 200 });
+        }
+
+        const { data: igCommentBusiness } = await supabase
+          .from("businesses")
+          .select("name, servicios, tono_bot, status, catalogo")
+          .eq("id", igCommentAccount.business_id)
+          .maybeSingle();
+
+        if (igCommentBusiness?.status === "suspended" || igCommentBusiness?.status === "cancelled") {
+          return new NextResponse("ok", { status: 200 });
+        }
+
+        const { public_reply, open_dm, dm_message } = await generateCommentReply({
+          business: igCommentBusiness,
+          commentText,
+          platform: "instagram",
+        });
+
+        const pubResult = await sendInstagramCommentReply({
+          accessToken: igCommentAccount.access_token,
+          commentId,
+          message: public_reply,
+        });
+        if (!pubResult.ok) {
+          console.error("❌ Error respondiendo comentario Instagram:", JSON.stringify(pubResult.error));
+        } else {
+          console.log("✅ Respuesta pública al comentario enviada");
+        }
+
+        if (open_dm && dm_message) {
+          const dmResult = await sendInstagramPrivateReply({
+            accessToken: igCommentAccount.access_token,
+            commentId,
+            message: dm_message,
+          });
+          if (!dmResult.ok) {
+            console.error("❌ Error enviando private reply Instagram:", JSON.stringify(dmResult.error));
+          } else {
+            console.log("✅ Private reply Instagram enviado");
+          }
+        }
+
+        return new NextResponse("ok", { status: 200 });
+      }
+
+      // ── DMs ──
       if (!messaging?.message || messaging.message.is_echo) {
         return new NextResponse("ok", { status: 200 });
       }
@@ -180,10 +252,79 @@ export async function POST(req: NextRequest) {
     }
     // ── FIN INSTAGRAM HANDLER ────────────────────────────────────────────────
 
-    // ── FACEBOOK PAGE HANDLER ─────────────────────────────────────────────────
+    // ── FACEBOOK HANDLER (DMs + Comentarios) ─────────────────────────────────
     if (body.object === "page") {
       const messaging = body.entry?.[0]?.messaging?.[0];
+      const change = body.entry?.[0]?.changes?.[0];
 
+      // ── Comentarios ──
+      if (change?.field === "feed" && change?.value?.item === "comment") {
+        const commentId: string = change.value?.comment_id || "";
+        const commentText: string = change.value?.message || "";
+        const pageId: string = body.entry?.[0]?.id || "";
+
+        if (!commentText || !commentId) {
+          return new NextResponse("ok", { status: 200 });
+        }
+
+        console.log(`💬 Facebook comentario | id: ${commentId} | texto: "${commentText}"`);
+
+        const { data: fbCommentAccount } = await supabase
+          .from("social_accounts")
+          .select("business_id, access_token")
+          .eq("page_id", pageId)
+          .eq("platform", "facebook")
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (!fbCommentAccount?.business_id) {
+          return new NextResponse("ok", { status: 200 });
+        }
+
+        const { data: fbCommentBusiness } = await supabase
+          .from("businesses")
+          .select("name, servicios, tono_bot, status, catalogo")
+          .eq("id", fbCommentAccount.business_id)
+          .maybeSingle();
+
+        if (fbCommentBusiness?.status === "suspended" || fbCommentBusiness?.status === "cancelled") {
+          return new NextResponse("ok", { status: 200 });
+        }
+
+        const { public_reply, open_dm, dm_message } = await generateCommentReply({
+          business: fbCommentBusiness,
+          commentText,
+          platform: "facebook",
+        });
+
+        const pubResult = await sendFacebookCommentReply({
+          accessToken: fbCommentAccount.access_token,
+          commentId,
+          message: public_reply,
+        });
+        if (!pubResult.ok) {
+          console.error("❌ Error respondiendo comentario Facebook:", JSON.stringify(pubResult.error));
+        } else {
+          console.log("✅ Respuesta pública al comentario Facebook enviada");
+        }
+
+        if (open_dm && dm_message) {
+          const dmResult = await sendFacebookPrivateReply({
+            accessToken: fbCommentAccount.access_token,
+            commentId,
+            message: dm_message,
+          });
+          if (!dmResult.ok) {
+            console.error("❌ Error enviando private reply Facebook:", JSON.stringify(dmResult.error));
+          } else {
+            console.log("✅ Private reply Facebook enviado");
+          }
+        }
+
+        return new NextResponse("ok", { status: 200 });
+      }
+
+      // ── DMs ──
       if (!messaging?.message || messaging.message.is_echo) {
         return new NextResponse("ok", { status: 200 });
       }
