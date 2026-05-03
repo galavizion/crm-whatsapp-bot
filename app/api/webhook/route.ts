@@ -268,13 +268,22 @@ export async function POST(req: NextRequest) {
 
       // ── Comentarios ──
       if (change?.field === "feed" && change?.value?.item === "comment") {
+        const verb: string = change.value?.verb || "";
         const commentId: string = change.value?.comment_id || "";
         const commentText: string = change.value?.message || "";
         const pageId: string = body.entry?.[0]?.id || "";
         const commentAuthorId: string = change.value?.from?.id || "";
-        const isTopLevelComment: boolean = !change.value?.parent_id;
+        const postId: string = change.value?.post_id || "";
+        // En Facebook, parent_id = post_id significa comentario raíz; si es diferente es una respuesta
+        const isTopLevelComment: boolean = change.value?.parent_id === postId;
 
-        // Ignorar comentarios propios del bot (evita loop infinito)
+        // Solo procesar comentarios nuevos
+        if (verb !== "add") {
+          console.log(`⏭️ Evento feed ignorado — verb: ${verb}`);
+          return new NextResponse("ok", { status: 200 });
+        }
+
+        // Ignorar comentarios propios de la página (evita loop infinito)
         if (commentAuthorId === pageId) {
           console.log("⏭️ Comentario propio de la página ignorado");
           return new NextResponse("ok", { status: 200 });
