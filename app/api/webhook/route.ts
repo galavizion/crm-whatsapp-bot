@@ -5,6 +5,7 @@ import { getSystemPrompt } from "@/lib/ai/systemPrompt";
 import { buildReplyPrompt } from "@/lib/ai/replyPrompt";
 import { extractMemory } from "@/lib/ai/memory";
 import { sendWhatsAppText } from "@/lib/ai/sendWhatsAppText";
+import { sendInstagramMessage } from "@/lib/ai/sendInstagramMessage";
 
 export const runtime = "nodejs";
 
@@ -36,11 +37,147 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     console.log("📨 RAW:", JSON.stringify(body));
 
-    // Guard: ignorar eventos que no sean de WhatsApp (Instagram, Facebook Pages, etc.)
-    if (body.object && body.object !== "whatsapp_business_account") {
+    // Guard: ignorar eventos de plataformas no soportadas
+    const supportedObjects = ["whatsapp_business_account", "instagram"];
+    if (body.object && !supportedObjects.includes(body.object)) {
       console.log(`⏭️ Evento ignorado — object: ${body.object}`);
       return new NextResponse("ok", { status: 200 });
     }
+
+    // ── INSTAGRAM DM HANDLER ──────────────────────────────────────────────────
+    if (body.object === "instagram") {
+      const messaging = body.entry?.[0]?.messaging?.[0];
+
+      if (!messaging?.message || messaging.message.is_echo) {
+        return new NextResponse("ok", { status: 200 });
+      }
+
+      const senderId = messaging.sender?.id;
+      const recipientId = messaging.recipient?.id;
+      const messageId = messaging.message?.mid;
+      const text: string = messaging.message?.text || "";
+
+      if (!text || !senderId) {
+        console.log("⚠️ Instagram: mensaje sin texto o sender");
+        return new NextResponse("ok", { status: 200 });
+      }
+
+      console.log(`📸 Instagram DM | de: ${senderId} | para: ${recipientId}`);
+
+      const { data: saAccount } = await supabase
+        .from("social_accounts")
+        .select("business_id, access_token, instagram_account_id")
+        .eq("instagram_account_id", recipientId)
+        .eq("platform", "instagram")
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (!saAccount?.business_id) {
+        console.log("❌ Instagram account no vinculada a ningún negocio:", recipientId);
+        return new NextResponse("ok", { status: 200 });
+      }
+
+      const businessId = saAccount.business_id;
+      const accessToken = saAccount.access_token;
+
+      const { error: igInsertError } = await supabase
+        .from("mensajes_recibidos")
+        .insert({ whatsapp: senderId, texto: text, tipo: "cliente", message_id: messageId, business_id: businessId });
+
+      if (igInsertError) {
+        console.log("⚠️ Instagram mensaje duplicado:", messageId);
+        return new NextResponse("ok", { status: 200 });
+      }
+
+      const { data: business } = await supabase
+        .from("businesses")
+        .select("name, slogan, descripcion, servicios, instrucciones_bot, tono_bot, status")
+        .eq("id", businessId)
+        .maybeSingle();
+
+      if (business?.status === "suspended" || business?.status === "cancelled") {
+        return new NextResponse("ok", { status: 200 });
+      }
+
+      let { data: contacto } = await supabase
+        .from("contactos")
+        .select("*")
+        .eq("business_id", businessId)
+        .eq("whatsapp", senderId)
+        .maybeSingle();
+
+      if (!contacto) {
+        const { data: nuevo } = await supabase
+          .from("contactos")
+          .insert({ whatsapp: senderId, business_id: businessId, estado: "interesado", veces_contacto: 1 })
+          .select()
+          .maybeSingle();
+        contacto = nuevo;
+      } else {
+        await supabase
+          .from("contactos")
+          .update({ veces_contacto: (contacto.veces_contacto || 0) + 1 })
+          .eq("id", contacto.id);
+      }
+
+      const { data: igHistorial } = await supabase
+        .from("mensajes_recibidos")
+        .select("texto, tipo")
+        .eq("whatsapp", senderId)
+        .eq("business_id", businessId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      const igHistory = (igHistorial || [])
+        .reverse()
+        .slice(0, -1)
+        .map((m) => ({
+          role: m.tipo === "bot" ? "assistant" as const : "user" as const,
+          content: m.texto || "",
+        }));
+
+      const igSystemPrompt = getSystemPrompt({ business, contacto: contacto || {}, platform: "instagram" });
+      const igUserPrompt = buildReplyPrompt({ contacto: contacto || {}, incomingMessage: text });
+      const igRespuesta = await generateReply({ systemPrompt: igSystemPrompt, userPrompt: igUserPrompt, history: igHistory });
+
+      await supabase.from("mensajes_recibidos").insert({
+        whatsapp: senderId, texto: igRespuesta, tipo: "bot", business_id: businessId,
+      });
+
+      if (contacto) {
+        const igMemory = await extractMemory({ business, contacto, incomingMessage: text, assistantReply: igRespuesta });
+        await supabase
+          .from("contactos")
+          .update({
+            resumen: igMemory.resumen,
+            ultimo_tema: igMemory.ultimo_tema,
+            necesidad: igMemory.necesidad,
+            estado: igMemory.estado,
+            nombre: igMemory.nombre || contacto.nombre || null,
+            tipo_negocio: igMemory.tipo_negocio || null,
+            presupuesto: igMemory.presupuesto || null,
+            datos_extra: igMemory.datos_extra || null,
+            ultima_respuesta: new Date().toISOString(),
+          })
+          .eq("id", contacto.id);
+      }
+
+      const igResult = await sendInstagramMessage({
+        accessToken,
+        instagramAccountId: saAccount.instagram_account_id,
+        to: senderId,
+        body: igRespuesta,
+      });
+
+      if (!igResult.ok) {
+        console.error("❌ Error enviando Instagram DM:", JSON.stringify(igResult.error));
+      } else {
+        console.log("✅ Instagram DM enviado a", senderId);
+      }
+
+      return new NextResponse("ok", { status: 200 });
+    }
+    // ── FIN INSTAGRAM HANDLER ────────────────────────────────────────────────
 
     const entry = body.entry?.[0];
     const change = entry?.changes?.[0];
