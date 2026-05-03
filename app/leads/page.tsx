@@ -2,9 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import StatusDropdown from "@/components/StatusDropdown";
 import AssignLeadDropdown from "@/components/AssignLeadDropdown";
+import { ClickableRow } from "@/components/ClickableRow";
 import ExportLeadsButton from "@/components/ExportLeadsButton";
 import { RefreshButton } from "@/components/RefreshButton";
 import { AutoRefreshOnFocus } from "@/components/AutoRefreshOnFocus";
@@ -457,7 +458,6 @@ export default async function LeadsPage({
                         {isAdmin && !isGod && <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Asignado</th>}
                         <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Necesidad</th>
                         <th className="px-4 py-3 text-right text-[11px] font-bold uppercase tracking-wide text-neutral-500">Actividad</th>
-                        <th className="w-16 px-4 py-3"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -465,7 +465,7 @@ export default async function LeadsPage({
                         const assignedUser = sellerOptions.find((s) => s.user_id === lead.assigned_user_id);
                         const assignedName = emailToName(assignedUser?.email);
                         return (
-                          <tr key={lead.id} className="border-b border-neutral-100 last:border-0 transition-colors hover:bg-neutral-50/60">
+                          <ClickableRow key={lead.id} href={`/leads/${lead.id}`} className="border-b border-neutral-100 last:border-0 transition-colors hover:bg-neutral-50/60">
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2.5">
                                 <div
@@ -483,7 +483,7 @@ export default async function LeadsPage({
                                 </div>
                               </div>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                               <StatusDropdown id={lead.id} current={lead.estado || ""} />
                             </td>
                             {isGod && (
@@ -494,7 +494,7 @@ export default async function LeadsPage({
                               </td>
                             )}
                             {isAdmin && !isGod && (
-                              <td className="px-4 py-3">
+                              <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex flex-col gap-1.5">
                                   {assignedUser ? (
                                     <div className="flex items-center gap-1.5">
@@ -528,16 +528,7 @@ export default async function LeadsPage({
                                 {relativeDate(lead.ultima_respuesta || lead.created_at)}
                               </span>
                             </td>
-                            <td className="px-4 py-3">
-                              <Link
-                                href={`/leads/${lead.id}`}
-                                className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-100"
-                              >
-                                Ver
-                                <ArrowUpRight className="h-3 w-3" />
-                              </Link>
-                            </td>
-                          </tr>
+                          </ClickableRow>
                         );
                       })}
                     </tbody>
