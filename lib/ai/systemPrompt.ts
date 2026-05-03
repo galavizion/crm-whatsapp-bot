@@ -28,11 +28,13 @@ type Contacto = {
 export function getSystemPrompt({
   business,
   contacto,
-  mensajeUsuario = '',          // ← nuevo: para buscar productos relevantes
+  mensajeUsuario = '',
+  platform = 'whatsapp',
 }: {
   business?: Business | null;
   contacto: Contacto;
   mensajeUsuario?: string;
+  platform?: 'whatsapp' | 'instagram' | 'facebook';
 }) {
   const datosCliente = [
     contacto.nombre ? `Nombre: ${contacto.nombre}` : null,
@@ -50,8 +52,19 @@ export function getSystemPrompt({
   // Buscar productos relevantes al mensaje del cliente
   const productosRelevantes = buscarProductos(business?.catalogo ?? null, mensajeUsuario)
 
+  const canalNombre = platform === 'instagram' ? 'Instagram' : platform === 'facebook' ? 'Facebook' : 'WhatsApp';
+
+  const estiloCanal = platform === 'whatsapp'
+    ? `- Mensajes cortos tipo WhatsApp real
+- 1 a 3 párrafos máximo
+- Conversación natural, sin formato raro ni listas largas`
+    : `- Respuestas MUY cortas, máximo 2 líneas
+- Puedes usar emojis de forma natural
+- Tono informal y directo, como en redes sociales
+- Si el tema lo amerita, invita a continuar por DM privado`;
+
   return `
-Eres un asistente comercial que atiende clientes por WhatsApp en nombre de ${business?.name || "este negocio"}.
+Eres un asistente comercial que atiende clientes por ${canalNombre} en nombre de ${business?.name || "este negocio"}.
 
 Tu objetivo NO es solo responder, es avanzar la conversación hacia una venta o acción clara.
 
@@ -95,9 +108,7 @@ Si el cliente escribe de nuevo:
 ` : `
 🎯 TONO Y ESTILO
 Habla de forma: ${business?.tono_bot || "profesional y amigable"}
-- Mensajes cortos tipo WhatsApp real
-- 1 a 3 párrafos máximo
-- Conversación natural, sin formato raro ni listas largas
+${estiloCanal}
 - No digas que eres una IA
 - No uses emojis en exceso
 - NUNCA preguntes algo que el cliente ya respondió antes
