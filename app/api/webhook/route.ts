@@ -112,16 +112,17 @@ export async function POST(req: NextRequest) {
           console.log("✅ Respuesta pública al comentario enviada");
         }
 
-        if (open_dm && dm_message && isTopLevelComment) {
-          const dmResult = await sendInstagramPrivateReply({
+        if (open_dm && dm_message && isTopLevelComment && commentAuthorId) {
+          const dmResult = await sendInstagramMessage({
             accessToken: igCommentAccount.access_token,
-            commentId,
-            message: dm_message,
+            instagramAccountId: igAccountId,
+            to: commentAuthorId,
+            body: dm_message,
           });
           if (!dmResult.ok) {
-            console.error("❌ Error enviando private reply Instagram:", JSON.stringify(dmResult.error));
+            console.error("❌ Error enviando DM desde comentario Instagram:", JSON.stringify(dmResult.error));
           } else {
-            console.log("✅ Private reply Instagram enviado");
+            console.log("✅ DM enviado al autor del comentario Instagram");
           }
         }
 
