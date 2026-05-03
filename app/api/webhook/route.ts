@@ -6,6 +6,7 @@ import { buildReplyPrompt } from "@/lib/ai/replyPrompt";
 import { extractMemory } from "@/lib/ai/memory";
 import { sendWhatsAppText } from "@/lib/ai/sendWhatsAppText";
 import { sendInstagramMessage } from "@/lib/ai/sendInstagramMessage";
+import { sendFacebookMessage } from "@/lib/ai/sendFacebookMessage";
 
 export const runtime = "nodejs";
 
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
     console.log("📨 RAW:", JSON.stringify(body));
 
     // Guard: ignorar eventos de plataformas no soportadas
-    const supportedObjects = ["whatsapp_business_account", "instagram"];
+    const supportedObjects = ["whatsapp_business_account", "instagram", "page"];
     if (body.object && !supportedObjects.includes(body.object)) {
       console.log(`⏭️ Evento ignorado — object: ${body.object}`);
       return new NextResponse("ok", { status: 200 });
@@ -178,6 +179,141 @@ export async function POST(req: NextRequest) {
       return new NextResponse("ok", { status: 200 });
     }
     // ── FIN INSTAGRAM HANDLER ────────────────────────────────────────────────
+
+    // ── FACEBOOK PAGE HANDLER ─────────────────────────────────────────────────
+    if (body.object === "page") {
+      const messaging = body.entry?.[0]?.messaging?.[0];
+
+      if (!messaging?.message || messaging.message.is_echo) {
+        return new NextResponse("ok", { status: 200 });
+      }
+
+      const senderId = messaging.sender?.id;
+      const recipientId = messaging.recipient?.id;
+      const messageId = messaging.message?.mid;
+      const text: string = messaging.message?.text || "";
+
+      if (!text || !senderId) {
+        console.log("⚠️ Facebook: mensaje sin texto o sender");
+        return new NextResponse("ok", { status: 200 });
+      }
+
+      console.log(`📘 Facebook DM | de: ${senderId} | para: ${recipientId}`);
+
+      const { data: fbAccount } = await supabase
+        .from("social_accounts")
+        .select("business_id, access_token, page_id")
+        .eq("page_id", recipientId)
+        .eq("platform", "facebook")
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (!fbAccount?.business_id) {
+        console.log("❌ Facebook page no vinculada a ningún negocio:", recipientId);
+        return new NextResponse("ok", { status: 200 });
+      }
+
+      const businessId = fbAccount.business_id;
+      const accessToken = fbAccount.access_token;
+
+      const { error: fbInsertError } = await supabase
+        .from("mensajes_recibidos")
+        .insert({ whatsapp: senderId, texto: text, tipo: "cliente", message_id: messageId, business_id: businessId });
+
+      if (fbInsertError) {
+        console.log("⚠️ Facebook mensaje duplicado:", messageId);
+        return new NextResponse("ok", { status: 200 });
+      }
+
+      const { data: fbBusiness } = await supabase
+        .from("businesses")
+        .select("name, slogan, descripcion, servicios, instrucciones_bot, tono_bot, status")
+        .eq("id", businessId)
+        .maybeSingle();
+
+      if (fbBusiness?.status === "suspended" || fbBusiness?.status === "cancelled") {
+        return new NextResponse("ok", { status: 200 });
+      }
+
+      let { data: fbContacto } = await supabase
+        .from("contactos")
+        .select("*")
+        .eq("business_id", businessId)
+        .eq("whatsapp", senderId)
+        .maybeSingle();
+
+      if (!fbContacto) {
+        const { data: nuevo } = await supabase
+          .from("contactos")
+          .insert({ whatsapp: senderId, business_id: businessId, estado: "interesado", veces_contacto: 1 })
+          .select()
+          .maybeSingle();
+        fbContacto = nuevo;
+      } else {
+        await supabase
+          .from("contactos")
+          .update({ veces_contacto: (fbContacto.veces_contacto || 0) + 1 })
+          .eq("id", fbContacto.id);
+      }
+
+      const { data: fbHistorial } = await supabase
+        .from("mensajes_recibidos")
+        .select("texto, tipo")
+        .eq("whatsapp", senderId)
+        .eq("business_id", businessId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      const fbHistory = (fbHistorial || [])
+        .reverse()
+        .slice(0, -1)
+        .map((m) => ({
+          role: m.tipo === "bot" ? "assistant" as const : "user" as const,
+          content: m.texto || "",
+        }));
+
+      const fbSystemPrompt = getSystemPrompt({ business: fbBusiness, contacto: fbContacto || {}, platform: "facebook" });
+      const fbUserPrompt = buildReplyPrompt({ contacto: fbContacto || {}, incomingMessage: text });
+      const fbRespuesta = await generateReply({ systemPrompt: fbSystemPrompt, userPrompt: fbUserPrompt, history: fbHistory });
+
+      await supabase.from("mensajes_recibidos").insert({
+        whatsapp: senderId, texto: fbRespuesta, tipo: "bot", business_id: businessId,
+      });
+
+      if (fbContacto) {
+        const fbMemory = await extractMemory({ business: fbBusiness, contacto: fbContacto, incomingMessage: text, assistantReply: fbRespuesta });
+        await supabase
+          .from("contactos")
+          .update({
+            resumen: fbMemory.resumen,
+            ultimo_tema: fbMemory.ultimo_tema,
+            necesidad: fbMemory.necesidad,
+            estado: fbMemory.estado,
+            nombre: fbMemory.nombre || fbContacto.nombre || null,
+            tipo_negocio: fbMemory.tipo_negocio || null,
+            presupuesto: fbMemory.presupuesto || null,
+            datos_extra: fbMemory.datos_extra || null,
+            ultima_respuesta: new Date().toISOString(),
+          })
+          .eq("id", fbContacto.id);
+      }
+
+      const fbResult = await sendFacebookMessage({
+        accessToken,
+        pageId: fbAccount.page_id,
+        to: senderId,
+        body: fbRespuesta,
+      });
+
+      if (!fbResult.ok) {
+        console.error("❌ Error enviando Facebook DM:", JSON.stringify(fbResult.error));
+      } else {
+        console.log("✅ Facebook DM enviado a", senderId);
+      }
+
+      return new NextResponse("ok", { status: 200 });
+    }
+    // ── FIN FACEBOOK HANDLER ─────────────────────────────────────────────────
 
     const entry = body.entry?.[0];
     const change = entry?.changes?.[0];
