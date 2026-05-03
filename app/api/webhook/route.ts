@@ -307,6 +307,8 @@ export async function POST(req: NextRequest) {
           return new NextResponse("ok", { status: 200 });
         }
 
+        console.log("🔑 FB token en uso:", fbCommentAccount.access_token?.slice(0, 20) + "...");
+
         const { data: fbCommentBusiness } = await supabase
           .from("businesses")
           .select("name, servicios, tono_bot, status, catalogo")
