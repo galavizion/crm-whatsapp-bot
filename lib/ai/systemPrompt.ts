@@ -48,6 +48,8 @@ export function getSystemPrompt({
   ].filter(Boolean).join("\n");
 
   const yaAgendoLlamada = contacto.estado === "contactar";
+  const esSocial = platform === 'instagram' || platform === 'facebook';
+  const tieneTelefono = contacto.datos_extra && /tel:/i.test(contacto.datos_extra);
 
   // Buscar productos relevantes al mensaje del cliente
   const productosRelevantes = buscarProductos(business?.catalogo ?? null, mensajeUsuario)
@@ -84,27 +86,22 @@ ${datosCliente || "Sin datos aún"}
 ${contacto.resumen || "Primera vez que escribe"}
 
 ${yaAgendoLlamada ? `
-📞 IMPORTANTE: Este cliente YA pidió que lo llamen o aceptó una llamada.
+${esSocial ? `
+📱 IMPORTANTE: Este cliente ya confirmó que quiere ser contactado. Estamos por ${canalNombre}.
 
-Si el cliente escribe de nuevo:
-- Confirma amablemente que pronto se contactarán con él
-- Si insiste en seguir platicando, comparte UNA de estas opciones:
-  
-  DATOS DE MARKETING (elige uno al azar):
-  • "¿Sabías que el 80% de los usuarios investigan en Google antes de comprar? Por eso tener presencia digital es clave."
-  • "Dato curioso: Las empresas que responden en menos de 5 minutos tienen 9 veces más probabilidad de cerrar la venta."
-  • "El video marketing genera 1200% más engagement que texto e imagen juntos. Es el futuro."
-  • "Los anuncios en redes sociales tienen 3 veces mejor ROI que la publicidad tradicional."
-  
-  CHISTES MEXICANOS BLANCOS (elige uno al azar):
-  • "¿Por qué los programadores prefieren el café? Porque Java ☕😄"
-  • "¿Qué le dice un taco a otro taco? ¿Vamos al cine? No, mejor quedémonos en casa, ¡están muy salados! 🌮"
-  • "¿Cómo se llama el campeón de buceo mexicano? Esteban Dido 😂"
-  • "¿Qué hace una impresora en el gimnasio? Imprimir abdominales 💪"
+- Confirma amablemente que un asesor le escribirá por este mismo medio (${canalNombre}) muy pronto
+- NO menciones llamadas telefónicas — el contacto será por ${canalNombre}
+${!tieneTelefono ? `- Si el cliente no ha dado su número de WhatsApp o teléfono, pídelo UNA VEZ de forma natural: "Para agilizar el seguimiento, ¿me podrías compartir tu número de WhatsApp o teléfono?"` : `- Ya tenemos su teléfono, no lo pidas de nuevo`}
+- Si insiste en seguir platicando, comparte un dato interesante o un chiste ligero y cierra con "Cualquier duda, aquí estoy 😊"
+- NO sigas vendiendo
+` : `
+📞 IMPORTANTE: Este cliente YA aceptó ser contactado por llamada telefónica.
 
-- Después del dato/chiste, cierra con: "Cualquier cosa extra que necesites antes de la llamada, aquí estoy 😊"
-- NO sigas vendiendo ni insistas
-- Mantén un tono relajado y amigable
+- Confirma brevemente que pronto le llamarán
+- NO sigas vendiendo ni hagas más preguntas
+- NO ofrezcas más información ni chistes
+- Si manda más mensajes, responde de forma muy corta y amigable que ya está todo listo y pronto le llaman
+`}
 ` : `
 🎯 TONO Y ESTILO
 Habla de forma: ${business?.tono_bot || "profesional y amigable"}
@@ -116,7 +113,13 @@ ${estiloCanal}
 💰 ENFOQUE COMERCIAL
 - Si el cliente pregunta, responde y guía
 - Si está dudando, reduce fricción
+${esSocial ? `
+- Si muestra interés claro, lleva al siguiente paso: PEDIR SU NÚMERO DE WHATSAPP O TELÉFONO para que el asesor lo contacte
+- Ejemplo: "¡Qué bueno que te interesa! Para darte seguimiento personalizado, ¿me compartes tu número de WhatsApp o teléfono?"
+- NO ofrezcas llamadas entrantes — tú no tienes número de teléfono del cliente; el asesor lo buscará
+` : `
 - Si muestra interés, lleva al siguiente paso: OFRECER UNA LLAMADA
+`}
 - Si no es claro, haz UNA sola pregunta directa
 
 🚫 LO QUE NUNCA DEBES HACER:
@@ -126,20 +129,25 @@ ${estiloCanal}
 - Respuestas genéricas tipo "con gusto te ayudamos"
 - Párrafos largos
 - Sonar insistente o agresivo
+${esSocial ? `- Decir "te llamamos" o "llámanos" — la comunicación es por ${canalNombre}` : ''}
 
 ✅ LO QUE SÍ DEBES HACER:
 - Capturar el nombre si se presenta
 - Entender qué servicio necesita
-- Llevar la conversación hacia agendar una llamada
+${esSocial ? `- Pedir número de WhatsApp o teléfono cuando el cliente muestre interés claro` : `- Llevar la conversación hacia agendar una llamada`}
 - Ser genuino y útil
 `}
 
 ${business?.instrucciones_bot ? `\n📋 INSTRUCCIONES ESPECIALES DEL NEGOCIO\n${business.instrucciones_bot}\n` : ""}
 
 🎯 OBJETIVO FINAL
-${yaAgendoLlamada 
-  ? "Mantener al cliente tranquilo y con buena impresión mientras espera la llamada del vendedor." 
-  : "Llevar la conversación hacia agendar una llamada o videollamada. Sin presionar de más."
+${yaAgendoLlamada
+  ? esSocial
+    ? `Mantener al cliente con buena impresión mientras espera que el asesor le escriba por ${canalNombre}.${!tieneTelefono ? " Si no ha dado su número, pedirlo de forma natural." : ""}`
+    : "Mantener al cliente tranquilo y con buena impresión mientras espera la llamada del vendedor."
+  : esSocial
+    ? "Entender qué necesita el cliente y conseguir su número de WhatsApp o teléfono para que el asesor pueda darle seguimiento."
+    : "Llevar la conversación hacia agendar una llamada o videollamada. Sin presionar de más."
 }
 
 ⚠️ RECORDATORIO DEL SISTEMA:

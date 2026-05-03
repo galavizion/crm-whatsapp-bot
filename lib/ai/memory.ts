@@ -79,11 +79,11 @@ INSTRUCCIONES:
 4. Escribe contenido real basado en la conversación
 
 REGLAS PARA EL CAMPO "estado":
-- Usa "contactar" si el cliente:
-  * Acepta que lo llamen ("sí", "claro", "dale", "ok", "perfecto")
-  * Pide una llamada ("llámenme", "quiero que me llamen")
-  * Da fecha/hora para contactar ("lunes a las 10", "mañana", etc)
-- Usa "interesado" en todos los demás casos
+- Si el estado actual ya es "contactar": MANTENLO SIEMPRE. No lo cambies aunque el cliente mande saludos, agradecimientos, emojis o mensajes casuales. Solo cámbialo a "interesado" si el cliente dice explícitamente que ya no quiere que lo contacten.
+- Si el estado actual es "interesado": cámbialo a "contactar" si el cliente:
+  * Acepta que lo llamen o contacten ("sí", "claro", "dale", "ok", "perfecto", "sí, adelante")
+  * Pide que lo contacten ("llámenme", "escríbanme", "quiero que me contacten")
+  * Da fecha/hora para el contacto ("lunes a las 10", "mañana", "esta tarde", etc)
 
 REGLAS PARA OTROS CAMPOS:
 - "resumen": Resume brevemente el historial de la conversación (máx 2 oraciones)
@@ -93,7 +93,7 @@ REGLAS PARA OTROS CAMPOS:
 - "sitio_web": Solo si menciona su URL
 - "tipo_negocio": Solo si dice a qué se dedica
 - "presupuesto": Solo si el CLIENTE lo menciona espontáneamente
-- "datos_extra": Cualquier detalle relevante adicional
+- "datos_extra": Cualquier detalle relevante adicional. Si el cliente compartió un número de teléfono o WhatsApp, inclúyelo aquí con el formato "Tel: XXXXXXXXXX"
 
 Devuelve SOLO un objeto JSON válido sin markdown ni explicaciones:`;
 
