@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import StatusDropdown from "@/components/StatusDropdown";
 import AssignLeadDropdown from "@/components/AssignLeadDropdown";
 import { ClickableRow } from "@/components/ClickableRow";
