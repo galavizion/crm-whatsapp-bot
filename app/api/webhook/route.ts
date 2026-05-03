@@ -9,7 +9,7 @@ import { sendInstagramMessage } from "@/lib/ai/sendInstagramMessage";
 import { sendFacebookMessage } from "@/lib/ai/sendFacebookMessage";
 import { generateCommentReply } from "@/lib/ai/commentReply";
 import { sendInstagramCommentReply, sendInstagramPrivateReply } from "@/lib/ai/sendInstagramCommentReply";
-// import { sendFacebookCommentReply } from "@/lib/ai/sendFacebookCommentReply"; // pendiente App Review
+import { sendFacebookPrivateReply } from "@/lib/ai/sendFacebookCommentReply";
 
 export const runtime = "nodejs";
 
@@ -344,17 +344,16 @@ export async function POST(req: NextRequest) {
         // });
         console.log("⏭️ Respuesta pública FB omitida — pendiente App Review");
 
-        if (open_dm && dm_message && isTopLevelComment && commentAuthorId) {
-          const dmResult = await sendFacebookMessage({
+        if (open_dm && dm_message && isTopLevelComment && commentId) {
+          const dmResult = await sendFacebookPrivateReply({
             accessToken: fbCommentAccount.access_token,
-            pageId,
-            to: commentAuthorId,
-            body: dm_message,
+            commentId,
+            message: dm_message,
           });
           if (!dmResult.ok) {
-            console.error("❌ Error enviando DM Facebook desde comentario:", JSON.stringify(dmResult.error));
+            console.error("❌ Error enviando private reply Facebook:", JSON.stringify(dmResult.error));
           } else {
-            console.log("✅ DM Facebook enviado al autor del comentario");
+            console.log("✅ Facebook private reply enviado al autor del comentario");
           }
         }
 
