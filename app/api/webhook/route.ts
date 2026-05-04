@@ -317,8 +317,8 @@ export async function POST(req: NextRequest) {
       if (change?.field === "feed" && change?.value?.item === "comment") {
         const verb: string = change.value?.verb || "";
         const commentIdRaw: string = change.value?.comment_id || "";
-        // El webhook da "{post_short_id}_{comment_id}" — Graph API necesita solo el comment_id
-        const commentId: string = commentIdRaw.includes("_") ? commentIdRaw.split("_").slice(-1)[0] : commentIdRaw;
+        // Graph API private_replies necesita el ID completo "{post_id}_{comment_id}"
+        const commentId: string = commentIdRaw;
         const commentText: string = change.value?.message || "";
         const pageId: string = body.entry?.[0]?.id || "";
         const commentAuthorId: string = change.value?.from?.id || "";
