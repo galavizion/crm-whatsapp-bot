@@ -95,43 +95,6 @@ export async function POST(req: NextRequest) {
           return new NextResponse("ok", { status: 200 });
         }
 
-        // Upsert contacto desde comentario Instagram
-        let igCommentName: string | null = null;
-        try {
-          const profileRes = await fetch(
-            `https://graph.instagram.com/v23.0/${commentAuthorId}?fields=name,username&access_token=${igCommentAccount.access_token}`
-          );
-          const profileData = await profileRes.json();
-          igCommentName = profileData.name || profileData.username || null;
-        } catch {}
-
-        const { data: igExisting } = await supabase
-          .from("contactos")
-          .select("id, nombre, veces_contacto")
-          .eq("whatsapp", commentAuthorId)
-          .eq("business_id", igCommentAccount.business_id)
-          .maybeSingle();
-
-        if (!igExisting) {
-          await supabase.from("contactos").insert({
-            whatsapp: commentAuthorId,
-            business_id: igCommentAccount.business_id,
-            estado: "interesado",
-            canal: "instagram",
-            nombre: igCommentName,
-            necesidad: commentText,
-            veces_contacto: 1,
-            ultima_respuesta: new Date().toISOString(),
-          });
-          console.log("✅ Contacto creado desde comentario Instagram:", commentAuthorId);
-        } else {
-          await supabase.from("contactos").update({
-            ultima_respuesta: new Date().toISOString(),
-            veces_contacto: (igExisting.veces_contacto || 0) + 1,
-            ...(!igExisting.nombre && igCommentName ? { nombre: igCommentName } : {}),
-          }).eq("id", igExisting.id);
-        }
-
         const { public_reply, open_dm, dm_message } = await generateCommentReply({
           business: igCommentBusiness,
           commentText,
@@ -366,36 +329,6 @@ export async function POST(req: NextRequest) {
 
         if (fbCommentBusiness?.status === "suspended" || fbCommentBusiness?.status === "cancelled") {
           return new NextResponse("ok", { status: 200 });
-        }
-
-        // Upsert contacto desde comentario Facebook
-        const fbCommentName: string | null = change.value?.from?.name || null;
-
-        const { data: fbExisting } = await supabase
-          .from("contactos")
-          .select("id, nombre, veces_contacto")
-          .eq("whatsapp", commentAuthorId)
-          .eq("business_id", fbCommentAccount.business_id)
-          .maybeSingle();
-
-        if (!fbExisting) {
-          await supabase.from("contactos").insert({
-            whatsapp: commentAuthorId,
-            business_id: fbCommentAccount.business_id,
-            estado: "interesado",
-            canal: "facebook",
-            nombre: fbCommentName,
-            necesidad: commentText,
-            veces_contacto: 1,
-            ultima_respuesta: new Date().toISOString(),
-          });
-          console.log("✅ Contacto creado desde comentario Facebook:", commentAuthorId);
-        } else {
-          await supabase.from("contactos").update({
-            ultima_respuesta: new Date().toISOString(),
-            veces_contacto: (fbExisting.veces_contacto || 0) + 1,
-            ...(!fbExisting.nombre && fbCommentName ? { nombre: fbCommentName } : {}),
-          }).eq("id", fbExisting.id);
         }
 
         const { public_reply, open_dm, dm_message } = await generateCommentReply({
