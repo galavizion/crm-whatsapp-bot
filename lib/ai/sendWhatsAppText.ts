@@ -5,6 +5,7 @@ export async function sendWhatsAppTemplate({
   templateName,
   languageCode = "es_MX",
   parameters,
+  urlButtonSuffix,
 }: {
   accessToken: string;
   phoneNumberId: string;
@@ -12,11 +13,28 @@ export async function sendWhatsAppTemplate({
   templateName: string;
   languageCode?: string;
   parameters: string[];
+  urlButtonSuffix?: string;
 }) {
   if (!accessToken || !phoneNumberId) {
     return { ok: false, error: "Falta accessToken o phoneNumberId" };
   }
   try {
+    const components: object[] = [
+      {
+        type: "body",
+        parameters: parameters.map((value) => ({ type: "text", text: value })),
+      },
+    ];
+
+    if (urlButtonSuffix) {
+      components.push({
+        type: "button",
+        sub_type: "url",
+        index: "0",
+        parameters: [{ type: "text", text: urlButtonSuffix }],
+      });
+    }
+
     const res = await fetch(
       `https://graph.facebook.com/v23.0/${phoneNumberId}/messages`,
       {
@@ -32,10 +50,7 @@ export async function sendWhatsAppTemplate({
           template: {
             name: templateName,
             language: { code: languageCode },
-            components: [{
-              type: "body",
-              parameters: parameters.map((value) => ({ type: "text", text: value })),
-            }],
+            components,
           },
         }),
       }

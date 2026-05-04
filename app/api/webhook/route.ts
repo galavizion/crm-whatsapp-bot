@@ -761,12 +761,8 @@ export async function POST(req: NextRequest) {
         phoneNumberId,
         to: cleanNumber,
         templateName: "lead_listo_contactar",
-        parameters: [
-          nombre,
-          necesidad,
-          presupuesto,
-          `https://prospekto.mx/leads/${contacto.id}`,
-        ],
+        parameters: [nombre, necesidad, contacto.id],
+        urlButtonSuffix: contacto.id,
       });
 
       if (notifResult.ok) {
