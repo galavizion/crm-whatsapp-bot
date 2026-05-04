@@ -4,7 +4,7 @@ import { generateReply } from "@/lib/ai/reply";
 import { getSystemPrompt } from "@/lib/ai/systemPrompt";
 import { buildReplyPrompt } from "@/lib/ai/replyPrompt";
 import { extractMemory } from "@/lib/ai/memory";
-import { sendWhatsAppText } from "@/lib/ai/sendWhatsAppText";
+import { sendWhatsAppText, sendWhatsAppTemplate } from "@/lib/ai/sendWhatsAppText";
 import { sendInstagramMessage } from "@/lib/ai/sendInstagramMessage";
 import { sendFacebookMessage } from "@/lib/ai/sendFacebookMessage";
 import { generateCommentReply } from "@/lib/ai/commentReply";
@@ -823,18 +823,17 @@ export async function POST(req: NextRequest) {
       const presupuesto = memory?.presupuesto || contacto.presupuesto || "No especificado";
       const cleanNumber = sellerWhatsapp.replace(/\D/g, "");
 
-      const notifMsg =
-        `📞 Lead listo para llamar\n\n` +
-        `Nombre: ${nombre}\n` +
-        `Necesidad: ${necesidad}\n` +
-        `Presupuesto: ${presupuesto}\n\n` +
-        `Ver lead → https://prospekto.mx/leads/${contacto.id}`;
-
-      const notifResult = await sendWhatsAppText({
+      const notifResult = await sendWhatsAppTemplate({
         accessToken,
         phoneNumberId,
         to: cleanNumber,
-        body: notifMsg,
+        templateName: "lead_listo_contactar",
+        parameters: [
+          nombre,
+          necesidad,
+          presupuesto,
+          `https://prospekto.mx/leads/${contacto.id}`,
+        ],
       });
 
       if (notifResult.ok) {
