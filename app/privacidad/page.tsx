@@ -62,7 +62,7 @@ export default function PrivacidadPage() {
           <ul>
             <li><strong>Datos de cuenta:</strong> nombre, correo electrónico y número de teléfono al registrarte.</li>
             <li><strong>Datos de negocio:</strong> nombre del negocio, descripción, catálogo de productos/servicios y configuración del bot.</li>
-            <li><strong>Datos de leads:</strong> conversaciones de WhatsApp, nombre del prospecto, necesidad, presupuesto y estado del lead.</li>
+            <li><strong>Datos de leads:</strong> conversaciones de WhatsApp, Facebook Messenger e Instagram Direct, nombre del prospecto, necesidad, presupuesto y estado del lead. También se recopila el texto de comentarios públicos en Facebook e Instagram cuando el usuario interactúa con el bot.</li>
             <li><strong>Datos de uso:</strong> registros de acceso, dirección IP, tipo de navegador y páginas visitadas dentro de la plataforma.</li>
             <li><strong>Datos de integración:</strong> tokens de la API de WhatsApp Business (Meta Cloud API) necesarios para operar el bot.</li>
           </ul>
@@ -79,9 +79,18 @@ export default function PrivacidadPage() {
 
           <h2>3. Uso de inteligencia artificial</h2>
           <p>
-            Prospekto utiliza modelos de lenguaje de terceros (OpenAI) para procesar las conversaciones de WhatsApp.
-            Los mensajes de los prospectos se envían a la API de OpenAI de forma cifrada para generar respuestas
-            automáticas. No utilizamos estos datos para entrenar modelos externos.
+            Prospekto utiliza modelos de lenguaje de terceros (OpenAI y/o Anthropic Claude) para generar respuestas
+            automáticas en todas las plataformas integradas: WhatsApp, Facebook e Instagram. Esto incluye:
+          </p>
+          <ul>
+            <li>Mensajes de WhatsApp recibidos por el bot del negocio.</li>
+            <li>Comentarios públicos en publicaciones de Facebook e Instagram.</li>
+            <li>Mensajes directos o privados recibidos en Facebook Messenger e Instagram.</li>
+          </ul>
+          <p>
+            El texto de los mensajes y comentarios se envía a la API del proveedor de IA de forma cifrada
+            para generar una respuesta contextual. No utilizamos estos datos para entrenar modelos externos
+            ni los compartimos con terceros más allá del proveedor de IA necesario para operar el servicio.
           </p>
 
           <h2>4. Integración con plataformas de Meta</h2>

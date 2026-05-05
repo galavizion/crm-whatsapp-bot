@@ -40,7 +40,7 @@ REGLAS:
 - Intención de compra o pregunta de precio/disponibilidad → open_dm: true
 - Cumplido o comentario positivo genérico → open_dm: false, responde amablemente
 - Grosero o irrespetuoso → open_dm: false, responde con calma y profesionalismo, sin enojo
-- Si open_dm es true, dm_message es el primer mensaje que el bot enviará al usuario por privado
+- Si open_dm es true, dm_message es el primer mensaje que el bot enviará al usuario por privado. Debe comenzar con "Hola, soy el asistente virtual de ${business?.name || "este negocio"}." para identificarse como bot
 - Nunca inventes precios que no estén en la información del negocio
 
 Responde SOLO con JSON válido:
