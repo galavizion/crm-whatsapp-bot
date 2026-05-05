@@ -41,7 +41,7 @@ export default function PrivacidadPage() {
 
       {/* Contenido */}
       <div style={{ maxWidth: 760, margin: "0 auto", padding: "60px 24px 96px" }}>
-        <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 16 }}>Última actualización: abril 2025</p>
+        <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 16 }}>Última actualización: mayo 2026</p>
         <h1 className="serif" style={{ fontSize: "clamp(32px, 5vw, 52px)", fontWeight: 400, lineHeight: 1.15, marginBottom: 32, color: "#1a2035" }}>
           Política de Privacidad
         </h1>
@@ -84,7 +84,9 @@ export default function PrivacidadPage() {
             automáticas. No utilizamos estos datos para entrenar modelos externos.
           </p>
 
-          <h2>4. Integración con Facebook (Embedded Signup)</h2>
+          <h2>4. Integración con plataformas de Meta</h2>
+
+          <h3>4.1 WhatsApp Business (Embedded Signup)</h3>
           <p>
             Para conectar tu cuenta de WhatsApp Business, Prospekto utiliza <strong>Facebook Login</strong> (Embedded Signup)
             de Meta. A través de este proceso:
@@ -95,8 +97,45 @@ export default function PrivacidadPage() {
             <li>No accedemos a tu perfil personal de Facebook ni a información no relacionada con WhatsApp Business.</li>
             <li>Puedes revocar el acceso en cualquier momento desde la configuración de tu cuenta de Meta Business.</li>
           </ul>
+
+          <h3>4.2 Facebook Pages</h3>
           <p>
-            Los datos obtenidos a través de Facebook Login se usan únicamente para operar el bot de WhatsApp de tu negocio.
+            Cuando conectas una Página de Facebook a Prospekto, la plataforma puede:
+          </p>
+          <ul>
+            <li>Leer los <strong>comentarios públicos</strong> que los usuarios dejan en las publicaciones de tu página.</li>
+            <li>Generar respuestas automáticas a esos comentarios usando IA y publicarlas en nombre de la página.</li>
+            <li>Enviar <strong>mensajes privados (private replies)</strong> vía Messenger a los usuarios que comentan, cuando el contenido del comentario indica interés comercial.</li>
+            <li>Recopilar el <strong>nombre del comentarista</strong> y el <strong>texto del comentario</strong> para crear un lead en el CRM del negocio, únicamente cuando el usuario responde al mensaje privado.</li>
+          </ul>
+          <p>
+            Los permisos utilizados para esta integración son: <code>pages_messaging</code>, <code>pages_read_engagement</code> y <code>pages_manage_metadata</code>.
+            Estos permisos se usan exclusivamente para operar el bot en nombre del negocio que los autorizó.
+          </p>
+
+          <h3>4.3 Instagram</h3>
+          <p>
+            Cuando conectas una cuenta de Instagram Business a Prospekto, la plataforma puede:
+          </p>
+          <ul>
+            <li>Leer los <strong>comentarios públicos</strong> en las publicaciones de tu cuenta de Instagram.</li>
+            <li>Generar respuestas automáticas a comentarios usando IA.</li>
+            <li>Enviar <strong>mensajes directos privados</strong> a usuarios que comentan en tus publicaciones, cuando el comentario indica interés en tus productos o servicios.</li>
+            <li>Recopilar el <strong>nombre de usuario</strong> y el <strong>texto del comentario</strong> para crear un lead en el CRM del negocio, únicamente cuando el usuario responde al mensaje directo.</li>
+          </ul>
+          <p>
+            Los permisos utilizados son: <code>instagram_manage_comments</code> e <code>instagram_manage_messages</code>.
+            Estos permisos se usan exclusivamente para operar el bot en nombre del negocio que los autorizó.
+          </p>
+
+          <h3>4.4 Uso y limitaciones de datos de Meta</h3>
+          <p>
+            Los datos obtenidos a través de las integraciones de Meta (WhatsApp, Facebook, Instagram) se usan
+            únicamente para operar el bot de respuesta automática del negocio que autorizó el acceso. No compartimos,
+            vendemos ni usamos estos datos para publicidad, perfilado o entrenamiento de modelos de IA.
+            Puedes revocar el acceso en cualquier momento desde la configuración de tu cuenta de Meta Business.
+          </p>
+          <p>
             Para más información sobre cómo Meta maneja los datos, consulta la{" "}
             <a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener noreferrer">Política de Privacidad de Meta</a>.
           </p>
