@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { CheckCircle2, Circle } from "lucide-react";
+import { CheckCircle2, Circle, BookOpen } from "lucide-react";
+import Link from "next/link";
 import ConnectWhatsAppButton from "@/components/meta/ConnectWhatsAppButton";
 import ConnectMetaPagesButton from "@/components/meta/ConnectMetaPagesButton";
 
@@ -73,6 +74,16 @@ export default async function ConexionesPage() {
       <p className="text-xs text-slate-400 pt-2">
         Instagram y Facebook se conectan juntos con el mismo botón — usan el mismo inicio de sesión de Meta.
       </p>
+
+      <div className="pt-2 border-t border-slate-200">
+        <Link
+          href="/mi-negocio/whatsapp/manual"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-700 transition"
+        >
+          <BookOpen className="w-4 h-4" />
+          ¿Prefieres hacerlo manualmente? Ver guía paso a paso
+        </Link>
+      </div>
     </div>
   );
 }
