@@ -231,6 +231,7 @@ export default async function LeadsPage({
       .select("id, whatsapp, nombre, resumen, ultimo_tema, necesidad, estado, veces_contacto, created_at, ultima_respuesta, assigned_user_id, canal")
       .order("ultima_respuesta", { ascending: false });
 
+    if (businessUser?.business_id) contactosQuery = contactosQuery.eq("business_id", businessUser.business_id);
     if (!isAdmin) contactosQuery = contactosQuery.eq("assigned_user_id", user.id);
     if (estadoFiltro) contactosQuery = contactosQuery.eq("estado", estadoFiltro);
 

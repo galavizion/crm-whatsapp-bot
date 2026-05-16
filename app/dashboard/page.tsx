@@ -194,9 +194,8 @@ export default async function DashboardPage() {
       .select("id, nombre, whatsapp, resumen, necesidad, estado, assigned_user_id, ultima_respuesta, created_at")
       .order("created_at", { ascending: false });
 
-    if (!isAdmin) {
-      contactosQuery = contactosQuery.eq("assigned_user_id", user.id);
-    }
+    if (userData?.business_id) contactosQuery = contactosQuery.eq("business_id", userData.business_id);
+    if (!isAdmin) contactosQuery = contactosQuery.eq("assigned_user_id", user.id);
 
     const { data: contactosData, error: contactosError } = await contactosQuery;
 
