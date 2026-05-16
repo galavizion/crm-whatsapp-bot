@@ -1,15 +1,11 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import {
-  ExternalLink,
-  Camera,
-  CheckCircle2,
-  ChevronRight,
-  AlertCircle,
-  Mail,
-} from "lucide-react";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { CheckCircle2, Circle } from "lucide-react";
+import ConnectWhatsAppButton from "@/components/meta/ConnectWhatsAppButton";
+import ConnectMetaPagesButton from "@/components/meta/ConnectMetaPagesButton";
 
-export default async function WhatsAppGuiaPage() {
+export default async function ConexionesPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -23,324 +19,146 @@ export default async function WhatsAppGuiaPage() {
   if (!businessUser?.business_id) redirect("/dashboard");
   if ((businessUser.role || "").toLowerCase() !== "admin") redirect("/dashboard");
 
-  return (
-    <div className="space-y-6 pb-10">
+  const businessId = businessUser.business_id;
+  const admin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
-      {/* Intro */}
-      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
-        <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+  const [{ data: waAccount }, { data: igAccount }, { data: fbAccount }] = await Promise.all([
+    admin.from("whatsapp_accounts").select("display_phone").eq("business_id", businessId).eq("is_active", true).maybeSingle(),
+    admin.from("social_accounts").select("instagram_account_id").eq("business_id", businessId).eq("platform", "instagram").eq("is_active", true).maybeSingle(),
+    admin.from("social_accounts").select("page_id").eq("business_id", businessId).eq("platform", "facebook").eq("is_active", true).maybeSingle(),
+  ]);
+
+  return (
+    <div className="space-y-4 pb-10">
+      <p className="text-sm text-slate-500">
+        Conecta tus cuentas para que el bot responda automáticamente en los 3 canales.
+      </p>
+
+      {/* WhatsApp */}
+      <PlatformCard
+        color="emerald"
+        icon={<WhatsAppIcon />}
+        name="WhatsApp Business"
+        connected={!!waAccount}
+        detail={waAccount?.display_phone ? `+${waAccount.display_phone}` : undefined}
+      >
+        <ConnectWhatsAppButton businessId={businessId} />
+      </PlatformCard>
+
+      {/* Instagram */}
+      <PlatformCard
+        color="pink"
+        icon={<InstagramIcon />}
+        name="Instagram"
+        connected={!!igAccount}
+        detail={igAccount ? "Cuenta vinculada" : undefined}
+      >
+        <ConnectMetaPagesButton businessId={businessId} />
+      </PlatformCard>
+
+      {/* Facebook */}
+      <PlatformCard
+        color="blue"
+        icon={<FacebookIcon />}
+        name="Facebook (Messenger)"
+        connected={!!fbAccount}
+        detail={fbAccount ? "Página vinculada" : undefined}
+      >
+        <ConnectMetaPagesButton businessId={businessId} />
+      </PlatformCard>
+
+      <p className="text-xs text-slate-400 pt-2">
+        Instagram y Facebook se conectan juntos con el mismo botón — usan el mismo inicio de sesión de Meta.
+      </p>
+    </div>
+  );
+}
+
+function PlatformCard({
+  color,
+  icon,
+  name,
+  connected,
+  detail,
+  children,
+}: {
+  color: "emerald" | "pink" | "blue";
+  icon: React.ReactNode;
+  name: string;
+  connected: boolean;
+  detail?: string;
+  children: React.ReactNode;
+}) {
+  const colors = {
+    emerald: { bg: "bg-emerald-50", border: "border-emerald-200", icon: "bg-emerald-100 text-emerald-700" },
+    pink:    { bg: "bg-pink-50",    border: "border-pink-200",    icon: "bg-pink-100 text-pink-700" },
+    blue:    { bg: "bg-blue-50",    border: "border-blue-200",    icon: "bg-blue-100 text-blue-700" },
+  }[color];
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      {/* Header */}
+      <div className={`${colors.bg} ${colors.border} border-b px-5 py-4 flex items-center justify-between`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${colors.icon}`}>
+            {icon}
+          </div>
           <div>
-            <p className="text-sm font-semibold text-emerald-800 mb-1">
-              Configuración manual de WhatsApp Business API
-            </p>
-            <p className="text-sm text-emerald-700">
-              Sigue estos pasos para conectar tu número de WhatsApp Business con Prospekto.
-              El proceso toma entre 20 y 40 minutos. Al terminar, envíanos los datos y
-              nosotros activamos el bot por ti.
-            </p>
+            <p className="font-semibold text-slate-800 text-sm">{name}</p>
+            {detail && <p className="text-xs text-slate-500 mt-0.5">{detail}</p>}
           </div>
         </div>
+        {connected ? (
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Conectado
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+            <Circle className="w-3.5 h-3.5" />
+            No conectado
+          </div>
+        )}
       </div>
 
-      {/* PASO 1 */}
-      <Step numero={1} titulo="Crea tu cuenta de Meta Business Manager">
-        <p className="text-sm text-slate-600 mb-4">
-          Meta Business Manager es el panel donde administras tu empresa, apps y cuentas
-          de WhatsApp. Si ya tienes uno, salta al siguiente paso.
-        </p>
-        <ol className="text-sm text-slate-700 space-y-2 mb-5 list-decimal pl-5">
-          <li>
-            Ve a{" "}
-            <A href="https://business.facebook.com">business.facebook.com</A>
-          </li>
-          <li>Haz clic en <strong>Crear cuenta</strong></li>
-          <li>Ingresa el nombre de tu empresa, tu nombre y correo</li>
-          <li>Confirma tu correo cuando te llegue el mensaje de Meta</li>
-        </ol>
-        <Screenshot label="Pantalla de inicio de Meta Business Manager" />
-      </Step>
-
-      {/* PASO 2 */}
-      <Step numero={2} titulo="Crea una App en Meta for Developers">
-        <p className="text-sm text-slate-600 mb-4">
-          Necesitas una "App" de Meta para poder usar la API de WhatsApp Business.
-        </p>
-        <ol className="text-sm text-slate-700 space-y-2 mb-5 list-decimal pl-5">
-          <li>
-            Ve a{" "}
-            <A href="https://developers.facebook.com/apps">developers.facebook.com/apps</A>
-          </li>
-          <li>Haz clic en <strong>Crear app</strong></li>
-          <li>
-            Selecciona el tipo <strong>"Empresa"</strong> (Business)
-          </li>
-          <li>Escribe el nombre de tu app — puede ser el nombre de tu negocio</li>
-          <li>
-            En <em>Cuenta de Business Manager</em>, selecciona la cuenta que acabas de
-            crear
-          </li>
-          <li>Haz clic en <strong>Crear app</strong></li>
-        </ol>
-        <Screenshot label="Formulario de creación de app en Meta for Developers" />
-      </Step>
-
-      {/* PASO 3 */}
-      <Step numero={3} titulo="Agrega el producto WhatsApp a tu app">
-        <p className="text-sm text-slate-600 mb-4">
-          Dentro de tu app, necesitas habilitar el producto de WhatsApp Business Platform.
-        </p>
-        <ol className="text-sm text-slate-700 space-y-2 mb-5 list-decimal pl-5">
-          <li>En el panel de tu app, busca la sección <strong>Agregar productos</strong></li>
-          <li>Busca <strong>WhatsApp</strong> y haz clic en <strong>Configurar</strong></li>
-          <li>
-            Se creará automáticamente una Cuenta de WhatsApp Business (WABA) vinculada a
-            tu Business Manager
-          </li>
-          <li>Acepta los términos de servicio de WhatsApp Business Platform</li>
-        </ol>
-        <Screenshot label="Panel de productos — seleccionar WhatsApp" />
-        <Screenshot label="Términos de servicio de WhatsApp Business Platform" />
-      </Step>
-
-      {/* PASO 4 */}
-      <Step numero={4} titulo="Agrega y verifica tu número de teléfono">
-        <p className="text-sm text-slate-600 mb-4">
-          El número que uses <strong>no puede estar activo en WhatsApp personal o
-          WhatsApp Business app</strong> al mismo tiempo. Si lo está, primero elimínalo
-          desde la app.
-        </p>
-        <ol className="text-sm text-slate-700 space-y-2 mb-5 list-decimal pl-5">
-          <li>
-            En el menú de tu app, ve a <strong>WhatsApp &rsaquo; Configuración</strong>
-          </li>
-          <li>Haz clic en <strong>Agregar número de teléfono</strong></li>
-          <li>Escribe el nombre de perfil y categoría de tu negocio</li>
-          <li>
-            Ingresa tu número de teléfono (incluye código de país, ej:{" "}
-            <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">+52 818 123 4567</code>
-            )
-          </li>
-          <li>
-            Meta te enviará un código de verificación por SMS o llamada — ingrésalo para
-            confirmar
-          </li>
-        </ol>
-        <Nota>
-          Si tu número ya está en WhatsApp Business app, debes ir a{" "}
-          <strong>Configuración &rsaquo; Cuenta &rsaquo; Eliminar mi cuenta</strong>{" "}
-          desde la app antes de continuar.
-        </Nota>
-        <Screenshot label="Formulario para agregar número de teléfono" />
-        <Screenshot label="Pantalla de verificación con código SMS" />
-      </Step>
-
-      {/* PASO 5 */}
-      <Step numero={5} titulo="Crea un Usuario del Sistema para el token permanente">
-        <p className="text-sm text-slate-600 mb-4">
-          El token temporal que te da Meta expira en 24 horas. Para el bot necesitamos un
-          <strong> token permanente</strong>. Para eso se crea un "Usuario del Sistema".
-        </p>
-        <ol className="text-sm text-slate-700 space-y-2 mb-5 list-decimal pl-5">
-          <li>
-            Ve a{" "}
-            <A href="https://business.facebook.com/settings/system-users">
-              Meta Business Manager &rsaquo; Configuración &rsaquo; Usuarios del sistema
-            </A>
-          </li>
-          <li>Haz clic en <strong>Agregar</strong></li>
-          <li>
-            Dale un nombre (ej: <em>Prospekto Bot</em>) y rol <strong>Administrador</strong>
-          </li>
-          <li>Haz clic en <strong>Crear usuario del sistema</strong></li>
-          <li>
-            Luego clic en <strong>Agregar activos</strong> &rarr; selecciona{" "}
-            <strong>Apps</strong> &rarr; elige tu app &rarr; activa{" "}
-            <strong>Control total</strong>
-          </li>
-          <li>
-            También agrega la <strong>Cuenta de WhatsApp Business</strong> con{" "}
-            <strong>Control total</strong>
-          </li>
-          <li>
-            Haz clic en <strong>Generar token</strong>, selecciona tu app y activa los
-            permisos:
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>
-                <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">
-                  whatsapp_business_messaging
-                </code>
-              </li>
-              <li>
-                <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">
-                  whatsapp_business_management
-                </code>
-              </li>
-            </ul>
-          </li>
-          <li>
-            Copia el token generado — <strong>solo aparece una vez</strong>, guárdalo de
-            inmediato
-          </li>
-        </ol>
-        <Screenshot label="Panel de Usuarios del Sistema en Meta Business Manager" />
-        <Screenshot label="Pantalla de Generar Token — permisos seleccionados" />
-      </Step>
-
-      {/* PASO 6 */}
-      <Step numero={6} titulo="Obtén el Phone Number ID">
-        <p className="text-sm text-slate-600 mb-4">
-          El Phone Number ID identifica tu número dentro de la API. Lo encontrarás aquí:
-        </p>
-        <ol className="text-sm text-slate-700 space-y-2 mb-5 list-decimal pl-5">
-          <li>
-            En el panel de tu app ve a <strong>WhatsApp &rsaquo; Primeros pasos</strong>{" "}
-            (o <em>Getting started</em>)
-          </li>
-          <li>
-            Verás el campo <strong>Phone Number ID</strong> — es un número largo, ej:{" "}
-            <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">
-              101474725172793
-            </code>
-          </li>
-          <li>Cópialo</li>
-        </ol>
-        <Screenshot label="Pantalla 'Primeros pasos' mostrando el Phone Number ID" />
-      </Step>
-
-      {/* PASO 7 */}
-      <Step numero={7} titulo="Envíanos los datos para activar el bot" highlight>
-        <p className="text-sm text-slate-600 mb-4">
-          Con los datos de los pasos anteriores, escríbenos para que activemos el bot.
-          Necesitamos exactamente esto:
-        </p>
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 mb-5">
-          <DatoItem label="Phone Number ID" ejemplo="101474725172793" />
-          <DatoItem label="Access Token permanente" ejemplo="EAABsbCS..." />
-          <DatoItem
-            label="Número de teléfono"
-            ejemplo="+52 818 123 4567"
-          />
-        </div>
-        <a
-          href="mailto:hola@prospekto.mx?subject=Activar%20bot%20WhatsApp&body=Hola%2C%20quiero%20activar%20el%20bot%20de%20WhatsApp.%0A%0APhone%20Number%20ID%3A%20%0AAccess%20Token%3A%20%0ANúmero%20de%20teléfono%3A%20"
-          className="inline-flex items-center gap-2 px-5 py-3 bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] text-white text-sm font-semibold rounded-xl hover:opacity-90 transition shadow-lg"
-        >
-          <Mail className="w-4 h-4" />
-          Enviar datos por correo
-        </a>
-        <p className="text-xs text-slate-400 mt-3">
-          También puedes enviarnos los datos por WhatsApp o por el medio que prefieras.
-          Una vez que los recibamos, activamos el bot en menos de 24 horas.
-        </p>
-      </Step>
-
-      {/* Resumen */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-        <h3 className="font-semibold text-slate-800 mb-3 text-sm">Resumen de pasos</h3>
-        <div className="space-y-2">
-          {[
-            "Crear cuenta de Meta Business Manager",
-            "Crear una App en Meta for Developers",
-            "Agregar el producto WhatsApp a tu app",
-            "Agregar y verificar tu número de teléfono",
-            "Crear un Usuario del Sistema y generar token permanente",
-            "Obtener el Phone Number ID",
-            "Enviar los datos a Prospekto para activar el bot",
-          ].map((texto, i) => (
-            <div key={i} className="flex items-center gap-3 text-sm text-slate-700">
-              <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-xs font-bold flex items-center justify-center shrink-0">
-                {i + 1}
-              </span>
-              {texto}
-            </div>
-          ))}
-        </div>
+      {/* Action */}
+      <div className="px-5 py-4">
+        {connected ? (
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-500">¿Quieres cambiar la cuenta conectada?</p>
+            {children}
+          </div>
+        ) : (
+          children
+        )}
       </div>
     </div>
   );
 }
 
-/* ─── Sub-componentes ─── */
-
-function Step({
-  numero,
-  titulo,
-  children,
-  highlight,
-}: {
-  numero: number;
-  titulo: string;
-  children: React.ReactNode;
-  highlight?: boolean;
-}) {
+function WhatsAppIcon() {
   return (
-    <div
-      className={`rounded-2xl border shadow-sm p-5 space-y-0 ${
-        highlight
-          ? "bg-purple-50 border-purple-200"
-          : "bg-white border-slate-200"
-      }`}
-    >
-      <div className="flex items-center gap-3 mb-4">
-        <span
-          className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 ${
-            highlight
-              ? "bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] text-white"
-              : "bg-slate-100 text-slate-700"
-          }`}
-        >
-          {numero}
-        </span>
-        <h2 className={`font-semibold text-base ${highlight ? "text-purple-900" : "text-slate-800"}`}>
-          {titulo}
-        </h2>
-      </div>
-      {children}
-    </div>
+    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+    </svg>
   );
 }
 
-function Screenshot({ label }: { label: string }) {
+function InstagramIcon() {
   return (
-    <div className="mt-4 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-6 flex flex-col items-center justify-center gap-2 text-center">
-      <Camera className="w-6 h-6 text-slate-300" />
-      <p className="text-xs font-medium text-slate-400">{label}</p>
-      <p className="text-[11px] text-slate-300">Captura de pantalla pendiente</p>
-    </div>
+    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+    </svg>
   );
 }
 
-function Nota({ children }: { children: React.ReactNode }) {
+function FacebookIcon() {
   return (
-    <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4">
-      <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-      <p className="text-sm text-amber-700">{children}</p>
-    </div>
-  );
-}
-
-function A({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-1 text-purple-600 hover:text-purple-800 font-medium underline underline-offset-2"
-    >
-      {children}
-      <ExternalLink className="w-3 h-3" />
-    </a>
-  );
-}
-
-function DatoItem({ label, ejemplo }: { label: string; ejemplo: string }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">{label}</span>
-      <code className="text-xs text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded-lg">
-        {ejemplo}
-      </code>
-    </div>
+    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
   );
 }
