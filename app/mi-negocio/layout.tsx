@@ -41,8 +41,8 @@ export default async function MiNegocioLayout({ children }: { children: React.Re
               <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs uppercase tracking-widest text-white/70">Configuración</p>
               <h1 className="text-xl font-bold">{businessName}</h1>
+              <p className="text-xs uppercase tracking-widest text-white/70">Configuración</p>
             </div>
           </div>
         </div>
