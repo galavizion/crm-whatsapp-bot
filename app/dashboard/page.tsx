@@ -152,6 +152,7 @@ export default async function DashboardPage() {
   let role = "";
   let isAdmin = false;
   let contactos: Contacto[] = [];
+  let businessName: string | null = null;
 
   if (isGod) {
     isAdmin = true;
@@ -168,12 +169,25 @@ export default async function DashboardPage() {
   } else {
     const { data: userData } = await supabase
       .from("business_users")
-      .select("role")
+      .select("role, business_id")
       .eq("user_id", user.id)
       .maybeSingle();
 
     role = String(userData?.role || "").toLowerCase().trim();
     isAdmin = role === "admin";
+
+    if (userData?.business_id) {
+      const admin = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+      const { data: biz } = await admin
+        .from("businesses")
+        .select("name")
+        .eq("id", userData.business_id)
+        .maybeSingle();
+      businessName = biz?.name ?? null;
+    }
 
     let contactosQuery = supabase
       .from("contactos")
@@ -216,6 +230,10 @@ export default async function DashboardPage() {
             <h1 className="text-3xl font-bold tracking-tight text-neutral-900">
               {isGod ? "Dashboard global" : isAdmin ? "Dashboard de leads" : "Mis leads"}
             </h1>
+
+            {!isGod && businessName && (
+              <p className="mt-1 text-sm font-semibold text-violet-600">{businessName}</p>
+            )}
 
             <p className="mt-1 text-sm text-neutral-600">
               {isGod

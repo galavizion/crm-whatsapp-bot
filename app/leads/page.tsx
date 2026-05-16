@@ -162,6 +162,7 @@ export default async function LeadsPage({
   let isAdmin = false;
   let businesses: Business[] = [];
   let businessMap: Record<string, string> = {};
+  let businessName: string | null = null;
 
   if (isGod) {
     const admin = createAdminClient(
@@ -197,6 +198,19 @@ export default async function LeadsPage({
     const businessUser = businessUserData as BusinessUser | null;
     const role = String(businessUser?.role || "").toLowerCase().trim();
     isAdmin = role === "admin";
+
+    if (businessUser?.business_id) {
+      const admin = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+      const { data: biz } = await admin
+        .from("businesses")
+        .select("name")
+        .eq("id", businessUser.business_id)
+        .maybeSingle();
+      businessName = biz?.name ?? null;
+    }
 
     if (isAdmin && businessUser?.business_id) {
       const { data: sellersData } = await supabase
@@ -267,6 +281,9 @@ export default async function LeadsPage({
               Volver al dashboard
             </Link>
             <h1 className="text-3xl font-bold tracking-tight text-neutral-900">{titulo}</h1>
+            {!isGod && businessName && (
+              <p className="mt-0.5 text-sm font-semibold text-violet-600">{businessName}</p>
+            )}
             <p className="mt-1 text-sm text-neutral-600">{subtitulo}</p>
             {filtroActivoLabel ? (
               <div className="mt-3 flex flex-wrap items-center gap-2">
