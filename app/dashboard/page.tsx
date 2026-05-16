@@ -223,17 +223,13 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-7xl px-4 py-6 md:px-6 lg:px-8">
         <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
+            <h1 className="text-3xl font-bold tracking-tight text-neutral-900">
+              {!isGod && businessName ? businessName : isGod ? "Dashboard global" : isAdmin ? "Dashboard de leads" : "Mis leads"}
+            </h1>
+
             <p className="text-sm font-medium text-neutral-500">
               {isGod ? "Vista God" : isAdmin ? "Vista administrador" : "Vista vendedor"}
             </p>
-
-            <h1 className="text-3xl font-bold tracking-tight text-neutral-900">
-              {isGod ? "Dashboard global" : isAdmin ? "Dashboard de leads" : "Mis leads"}
-            </h1>
-
-            {!isGod && businessName && (
-              <p className="mt-1 text-sm font-semibold text-violet-600">{businessName}</p>
-            )}
 
             <p className="mt-1 text-sm text-neutral-600">
               {isGod

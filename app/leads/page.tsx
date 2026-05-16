@@ -280,10 +280,9 @@ export default async function LeadsPage({
               <ArrowLeft className="h-4 w-4" />
               Volver al dashboard
             </Link>
-            <h1 className="text-3xl font-bold tracking-tight text-neutral-900">{titulo}</h1>
-            {!isGod && businessName && (
-              <p className="mt-0.5 text-sm font-semibold text-violet-600">{businessName}</p>
-            )}
+            <h1 className="text-3xl font-bold tracking-tight text-neutral-900">
+              {!isGod && businessName ? businessName : titulo}
+            </h1>
             <p className="mt-1 text-sm text-neutral-600">{subtitulo}</p>
             {filtroActivoLabel ? (
               <div className="mt-3 flex flex-wrap items-center gap-2">
