@@ -8,41 +8,45 @@ const MAX_SELLERS = 5;
 
 async function addSeller(formData: FormData) {
   "use server";
-  const supabase = createAdminClient(
+  const admin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
+
+  // Verificar sesión con el cliente de usuario
   const supabaseUser = await createClient();
   const { data: { user } } = await supabaseUser.auth.getUser();
-  if (!user) return;
+  if (!user) redirect("/mi-negocio/equipo?error=no_session");
 
-  const { data: bu } = await supabaseUser
+  // Usar admin client para evitar problemas de RLS
+  const { data: bu } = await admin
     .from("business_users")
     .select("business_id, role")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (!bu?.business_id || bu.role !== "admin") return;
+  if (!bu?.business_id || bu.role !== "admin") redirect("/mi-negocio/equipo?error=sin_permiso");
 
   const businessId = bu.business_id;
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const password = String(formData.get("password") || "").trim();
   const whatsapp = String(formData.get("whatsapp") || "").trim() || null;
 
-  if (!email || !password) return;
+  if (!email || !password) redirect("/mi-negocio/equipo?error=campos_requeridos");
+  if (password.length < 6) redirect("/mi-negocio/equipo?error=password_corta");
 
   // Verificar límite de 5 vendedores
-  const { count } = await supabase
+  const { count } = await admin
     .from("business_users")
     .select("id", { count: "exact", head: true })
     .eq("business_id", businessId)
     .eq("role", "seller");
 
-  if ((count ?? 0) >= MAX_SELLERS) return;
+  if ((count ?? 0) >= MAX_SELLERS) redirect("/mi-negocio/equipo?error=limite_alcanzado");
 
   let userId: string | null = null;
 
-  const { data: authUser, error: createError } = await supabase.auth.admin.createUser({
+  const { data: authUser, error: createError } = await admin.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
@@ -50,38 +54,38 @@ async function addSeller(formData: FormData) {
 
   if (createError) {
     if (createError.message?.toLowerCase().includes("already")) {
-      const { data: listData } = await supabase.auth.admin.listUsers();
+      const { data: listData } = await admin.auth.admin.listUsers();
       const existing = listData?.users?.find((u) => u.email === email);
       if (existing) userId = existing.id;
-      else return;
-    } else return;
+      else redirect("/mi-negocio/equipo?error=usuario_no_encontrado");
+    } else {
+      const msg = encodeURIComponent(createError.message);
+      redirect(`/mi-negocio/equipo?error=${msg}`);
+    }
   } else {
     userId = authUser?.user?.id ?? null;
   }
 
-  if (!userId) return;
+  if (!userId) redirect("/mi-negocio/equipo?error=sin_user_id");
 
-  const { data: existing } = await supabase
+  const { data: existing } = await admin
     .from("business_users")
     .select("id")
     .eq("business_id", businessId)
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (existing) {
-    revalidatePath("/mi-negocio/equipo");
-    return;
+  if (!existing) {
+    await admin.from("business_users").insert({
+      business_id: businessId,
+      user_id: userId,
+      role: "seller",
+      email,
+      whatsapp,
+    });
   }
 
-  await supabase.from("business_users").insert({
-    business_id: businessId,
-    user_id: userId,
-    role: "seller",
-    email,
-    whatsapp,
-  });
-
-  revalidatePath("/mi-negocio/equipo");
+  redirect("/mi-negocio/equipo?ok=1");
 }
 
 async function removeSeller(formData: FormData) {
@@ -115,7 +119,12 @@ async function removeSeller(formData: FormData) {
   revalidatePath("/mi-negocio/equipo");
 }
 
-export default async function EquipoPage() {
+export default async function EquipoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; ok?: string }>;
+}) {
+  const { error, ok } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -130,6 +139,17 @@ export default async function EquipoPage() {
   if ((businessUser.role || "").toLowerCase() !== "admin") redirect("/dashboard");
 
   const businessId = businessUser.business_id;
+
+  const ERROR_MESSAGES: Record<string, string> = {
+    no_session: "Tu sesión expiró. Vuelve a iniciar sesión.",
+    sin_permiso: "No tienes permiso para agregar vendedores.",
+    campos_requeridos: "El correo y la contraseña son obligatorios.",
+    password_corta: "La contraseña debe tener al menos 6 caracteres.",
+    limite_alcanzado: `Alcanzaste el límite de ${MAX_SELLERS} vendedores.`,
+    usuario_no_encontrado: "No se pudo encontrar o crear el usuario.",
+    sin_user_id: "Error interno al crear el usuario. Intenta de nuevo.",
+  };
+  const errorMsg = error ? (ERROR_MESSAGES[error] ?? decodeURIComponent(error)) : null;
 
   const admin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -148,6 +168,17 @@ export default async function EquipoPage() {
 
   return (
     <div className="space-y-5 pb-10">
+
+      {ok && (
+        <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-5 py-3 text-sm font-medium text-emerald-700">
+          ✓ Vendedor agregado correctamente. Ya puede iniciar sesión.
+        </div>
+      )}
+      {errorMsg && (
+        <div className="rounded-2xl bg-rose-50 border border-rose-200 px-5 py-3 text-sm font-medium text-rose-700">
+          ⚠ {errorMsg}
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-center justify-between">
