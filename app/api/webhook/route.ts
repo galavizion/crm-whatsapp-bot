@@ -709,78 +709,79 @@ export async function POST(req: NextRequest) {
     const respuesta = await generateReply({ systemPrompt, userPrompt, history });
     console.log("🤖 Respuesta IA:", respuesta);
 
-    // 7. GUARDAR RESPUESTA
-    await supabase.from("mensajes_recibidos").insert({
-      whatsapp: from, texto: respuesta, tipo: "bot", business_id: businessId,
-    });
-
-    // 8. ACTUALIZAR MEMORIA
-    let memory: Awaited<ReturnType<typeof extractMemory>> | null = null;
-
-    if (contacto) {
-      memory = await extractMemory({
-        business,
-        contacto,
-        incomingMessage: text,
-        assistantReply: respuesta,
-      });
-
-      await supabase
-        .from("contactos")
-        .update({
-          resumen: memory.resumen,
-          ultimo_tema: memory.ultimo_tema,
-          necesidad: memory.necesidad,
-          estado: memory.estado,
-          // ✅ MEJORADO: Priorizar nombre del perfil > nombre extraído por IA > nombre actual
-          nombre: profileName || ((memory.nombre && memory.nombre !== "Desconocido") ? memory.nombre : null) || ((contacto.nombre && contacto.nombre !== "Desconocido") ? contacto.nombre : null) || null,
-          sitio_web: memory.sitio_web || null,
-          tipo_negocio: memory.tipo_negocio || null,
-          presupuesto: memory.presupuesto || null,
-          datos_extra: memory.datos_extra || null,
-          ultima_respuesta: new Date().toISOString(),
-        })
-        .eq("id", contacto.id);
-
-      console.log("🧠 Memoria actualizada:", memory.estado);
-    }
-
-    // 8.5. NOTIFICAR AL VENDEDOR cuando el bot califica el lead como "contactar"
-    const estadoAnterior = contacto?.estado || "interesado";
-    const estadoNuevo = memory?.estado;
-    const transicionAContactar = estadoNuevo === "contactar" && estadoAnterior !== "contactar";
-
-    if (transicionAContactar && sellerWhatsapp && contacto) {
-      const nombre = profileName || memory?.nombre || contacto.nombre || "Sin nombre";
-      const necesidad = memory?.necesidad || contacto.necesidad || "No especificada";
-      const presupuesto = memory?.presupuesto || contacto.presupuesto || "No especificado";
-      const cleanNumber = sellerWhatsapp.replace(/\D/g, "");
-
-      const notifResult = await sendWhatsAppTemplate({
-        accessToken,
-        phoneNumberId,
-        to: cleanNumber,
-        templateName: "lead_listo_contactar",
-        parameters: [nombre, necesidad, contacto.id],
-        urlButtonSuffix: contacto.id,
-      });
-
-      if (notifResult.ok) {
-        console.log("🔔 Notificación 'contactar' enviada al vendedor:", cleanNumber);
-      } else {
-        console.warn("⚠️ No se pudo notificar al vendedor:", notifResult.error);
-      }
-    }
-
-    // 9. ENVIAR WHATSAPP
+    // 7. ENVIAR WHATSAPP — inmediatamente después de generar la respuesta
     const resultado = await sendWhatsAppText({ accessToken, phoneNumberId, to: from, body: respuesta });
 
     if (!resultado.ok) {
       console.error("❌ Error enviando WhatsApp:", JSON.stringify(resultado.error));
-      console.error("❌ Params usados — phoneNumberId:", phoneNumberId, "| to:", from, "| tokenInicio:", accessToken.slice(0, 10));
     } else {
       console.log("✅ Mensaje enviado a", from);
     }
+
+    // 8. TAREAS EN BACKGROUND — no bloquean la respuesta al usuario
+    void (async () => {
+      try {
+        // Guardar respuesta del bot
+        await supabase.from("mensajes_recibidos").insert({
+          whatsapp: from, texto: respuesta, tipo: "bot", business_id: businessId,
+        });
+
+        if (!contacto) return;
+
+        // Extraer memoria con IA
+        const memory = await extractMemory({
+          business,
+          contacto,
+          incomingMessage: text,
+          assistantReply: respuesta,
+        });
+
+        await supabase
+          .from("contactos")
+          .update({
+            resumen: memory.resumen,
+            ultimo_tema: memory.ultimo_tema,
+            necesidad: memory.necesidad,
+            estado: memory.estado,
+            nombre: profileName || ((memory.nombre && memory.nombre !== "Desconocido") ? memory.nombre : null) || ((contacto.nombre && contacto.nombre !== "Desconocido") ? contacto.nombre : null) || null,
+            sitio_web: memory.sitio_web || null,
+            tipo_negocio: memory.tipo_negocio || null,
+            presupuesto: memory.presupuesto || null,
+            datos_extra: memory.datos_extra || null,
+            ultima_respuesta: new Date().toISOString(),
+          })
+          .eq("id", contacto.id);
+
+        console.log("🧠 Memoria actualizada:", memory.estado);
+
+        // Notificar al vendedor si el lead pasa a "contactar"
+        const estadoAnterior = contacto?.estado || "interesado";
+        const transicionAContactar = memory.estado === "contactar" && estadoAnterior !== "contactar";
+
+        if (transicionAContactar && sellerWhatsapp) {
+          const nombre = profileName || memory.nombre || contacto.nombre || "Sin nombre";
+          const necesidad = memory.necesidad || contacto.necesidad || "No especificada";
+          const cleanNumber = sellerWhatsapp.replace(/\D/g, "");
+
+          const notifResult = await sendWhatsAppTemplate({
+            accessToken,
+            phoneNumberId,
+            to: cleanNumber,
+            templateName: "lead_listo_contactar",
+            parameters: [nombre, necesidad, contacto.id],
+            urlButtonSuffix: contacto.id,
+          });
+
+          if (notifResult.ok) {
+            console.log("🔔 Notificación 'contactar' enviada al vendedor:", cleanNumber);
+          } else {
+            console.warn("⚠️ No se pudo notificar al vendedor:", notifResult.error);
+          }
+        }
+      } catch (bgError) {
+        console.error("❌ Error en tarea background:", bgError);
+      }
+    })();
 
     return new NextResponse("ok", { status: 200 });
   } catch (error) {
