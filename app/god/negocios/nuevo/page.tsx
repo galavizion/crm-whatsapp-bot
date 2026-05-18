@@ -40,27 +40,41 @@ async function createNegocio(formData: FormData) {
   }
 
   // 2. Crear usuario admin en Supabase Auth
+  let adminUserId: string | null = null;
+
   const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
     email: adminEmail,
     password: adminPassword,
     email_confirm: true,
   });
 
-  if (authError || !authUser?.user) {
+  if (authError) {
+    if (authError.message?.toLowerCase().includes("already")) {
+      const { data: listData } = await supabase.auth.admin.listUsers();
+      const existing = listData?.users?.find((u) => u.email === adminEmail);
+      if (existing) {
+        adminUserId = existing.id;
+        await supabase.auth.admin.updateUserById(adminUserId, { password: adminPassword });
+      } else {
+        await supabase.from("businesses").delete().eq("id", business.id);
+        redirect("/god/negocios/nuevo?error=usuario_no_encontrado");
+      }
+    } else {
+      await supabase.from("businesses").delete().eq("id", business.id);
+      const msg = encodeURIComponent(authError.message || "Error al crear usuario admin");
+      redirect(`/god/negocios/nuevo?error=${msg}`);
+    }
+  } else if (!authUser?.user) {
     await supabase.from("businesses").delete().eq("id", business.id);
-    const msg = encodeURIComponent(authError?.message || "Error al crear usuario admin");
-    redirect(`/god/negocios/nuevo?error=${msg}`);
+    redirect("/god/negocios/nuevo?error=sin_user_id");
+  } else {
+    adminUserId = authUser.user.id;
   }
-
-  // Forzar confirmación de email por si Supabase lo ignora
-  await supabase.auth.admin.updateUserById(authUser.user.id, {
-    email_confirm: true,
-  });
 
   // 3. Agregar a business_users como admin
   await supabase.from("business_users").insert({
     business_id: business.id,
-    user_id: authUser.user.id,
+    user_id: adminUserId!,
     role: "admin",
     email: adminEmail,
   });

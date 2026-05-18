@@ -56,18 +56,18 @@ async function addSeller(formData: FormData) {
     if (createError.message?.toLowerCase().includes("already")) {
       const { data: listData } = await admin.auth.admin.listUsers();
       const existing = listData?.users?.find((u) => u.email === email);
-      if (existing) userId = existing.id;
-      else redirect("/mi-negocio/equipo?error=usuario_no_encontrado");
+      if (existing) {
+        userId = existing.id;
+        await admin.auth.admin.updateUserById(userId, { password });
+      } else {
+        redirect("/mi-negocio/equipo?error=usuario_no_encontrado");
+      }
     } else {
       const msg = encodeURIComponent(createError.message);
       redirect(`/mi-negocio/equipo?error=${msg}`);
     }
   } else {
     userId = authUser?.user?.id ?? null;
-    // Forzar confirmación de email por si Supabase lo ignora
-    if (userId) {
-      await admin.auth.admin.updateUserById(userId, { email_confirm: true });
-    }
   }
 
   if (!userId) redirect("/mi-negocio/equipo?error=sin_user_id");
