@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, Phone, Plug2 } from "lucide-react";
+import { Bot, Phone, Plug2, Users } from "lucide-react";
 
 const TABS = [
   { href: "/mi-negocio/bot", label: "Configuración del Bot", icon: Bot },
   { href: "/mi-negocio/perfil", label: "Perfil de WhatsApp", icon: Phone },
   { href: "/mi-negocio/whatsapp", label: "Conexiones", icon: Plug2 },
+  { href: "/mi-negocio/equipo", label: "Equipo", icon: Users },
 ];
 
 export default function TabsNav() {
