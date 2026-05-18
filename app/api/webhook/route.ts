@@ -232,28 +232,7 @@ export async function POST(req: NextRequest) {
       const igUserPrompt = buildReplyPrompt({ contacto: contacto || {}, incomingMessage: text });
       const igRespuesta = await generateReply({ systemPrompt: igSystemPrompt, userPrompt: igUserPrompt, history: igHistory });
 
-      await supabase.from("mensajes_recibidos").insert({
-        whatsapp: senderId, texto: igRespuesta, tipo: "bot", business_id: businessId,
-      });
-
-      if (contacto) {
-        const igMemory = await extractMemory({ business, contacto, incomingMessage: text, assistantReply: igRespuesta });
-        await supabase
-          .from("contactos")
-          .update({
-            resumen: igMemory.resumen,
-            ultimo_tema: igMemory.ultimo_tema,
-            necesidad: igMemory.necesidad,
-            estado: igMemory.estado,
-            nombre: (igMemory.nombre && igMemory.nombre !== "Desconocido") ? igMemory.nombre : ((contacto.nombre && contacto.nombre !== "Desconocido") ? contacto.nombre : null),
-            tipo_negocio: igMemory.tipo_negocio || null,
-            presupuesto: igMemory.presupuesto || null,
-            datos_extra: igMemory.datos_extra || null,
-            ultima_respuesta: new Date().toISOString(),
-          })
-          .eq("id", contacto.id);
-      }
-
+      // Enviar inmediatamente
       const igResult = await sendInstagramMessage({
         accessToken,
         instagramAccountId: saAccount.instagram_account_id,
@@ -266,6 +245,28 @@ export async function POST(req: NextRequest) {
       } else {
         console.log("✅ Instagram DM enviado a", senderId);
       }
+
+      // Background: guardar y actualizar CRM
+      void (async () => {
+        try {
+          await supabase.from("mensajes_recibidos").insert({
+            whatsapp: senderId, texto: igRespuesta, tipo: "bot", business_id: businessId,
+          });
+          if (!contacto) return;
+          const igMemory = await extractMemory({ business, contacto, incomingMessage: text, assistantReply: igRespuesta });
+          await supabase.from("contactos").update({
+            resumen: igMemory.resumen,
+            ultimo_tema: igMemory.ultimo_tema,
+            necesidad: igMemory.necesidad,
+            estado: igMemory.estado,
+            nombre: (igMemory.nombre && igMemory.nombre !== "Desconocido") ? igMemory.nombre : ((contacto.nombre && contacto.nombre !== "Desconocido") ? contacto.nombre : null),
+            tipo_negocio: igMemory.tipo_negocio || null,
+            presupuesto: igMemory.presupuesto || null,
+            datos_extra: igMemory.datos_extra || null,
+            ultima_respuesta: new Date().toISOString(),
+          }).eq("id", contacto.id);
+        } catch (e) { console.error("❌ IG background error:", e); }
+      })();
 
       return new NextResponse("ok", { status: 200 });
     }
@@ -467,28 +468,7 @@ export async function POST(req: NextRequest) {
       const fbUserPrompt = buildReplyPrompt({ contacto: fbContacto || {}, incomingMessage: text });
       const fbRespuesta = await generateReply({ systemPrompt: fbSystemPrompt, userPrompt: fbUserPrompt, history: fbHistory });
 
-      await supabase.from("mensajes_recibidos").insert({
-        whatsapp: senderId, texto: fbRespuesta, tipo: "bot", business_id: businessId,
-      });
-
-      if (fbContacto) {
-        const fbMemory = await extractMemory({ business: fbBusiness, contacto: fbContacto, incomingMessage: text, assistantReply: fbRespuesta });
-        await supabase
-          .from("contactos")
-          .update({
-            resumen: fbMemory.resumen,
-            ultimo_tema: fbMemory.ultimo_tema,
-            necesidad: fbMemory.necesidad,
-            estado: fbMemory.estado,
-            nombre: (fbMemory.nombre && fbMemory.nombre !== "Desconocido") ? fbMemory.nombre : ((fbContacto.nombre && fbContacto.nombre !== "Desconocido") ? fbContacto.nombre : null),
-            tipo_negocio: fbMemory.tipo_negocio || null,
-            presupuesto: fbMemory.presupuesto || null,
-            datos_extra: fbMemory.datos_extra || null,
-            ultima_respuesta: new Date().toISOString(),
-          })
-          .eq("id", fbContacto.id);
-      }
-
+      // Enviar inmediatamente
       const fbResult = await sendFacebookMessage({
         accessToken,
         pageId: fbAccount.page_id,
@@ -501,6 +481,28 @@ export async function POST(req: NextRequest) {
       } else {
         console.log("✅ Facebook DM enviado a", senderId);
       }
+
+      // Background: guardar y actualizar CRM
+      void (async () => {
+        try {
+          await supabase.from("mensajes_recibidos").insert({
+            whatsapp: senderId, texto: fbRespuesta, tipo: "bot", business_id: businessId,
+          });
+          if (!fbContacto) return;
+          const fbMemory = await extractMemory({ business: fbBusiness, contacto: fbContacto, incomingMessage: text, assistantReply: fbRespuesta });
+          await supabase.from("contactos").update({
+            resumen: fbMemory.resumen,
+            ultimo_tema: fbMemory.ultimo_tema,
+            necesidad: fbMemory.necesidad,
+            estado: fbMemory.estado,
+            nombre: (fbMemory.nombre && fbMemory.nombre !== "Desconocido") ? fbMemory.nombre : ((fbContacto.nombre && fbContacto.nombre !== "Desconocido") ? fbContacto.nombre : null),
+            tipo_negocio: fbMemory.tipo_negocio || null,
+            presupuesto: fbMemory.presupuesto || null,
+            datos_extra: fbMemory.datos_extra || null,
+            ultima_respuesta: new Date().toISOString(),
+          }).eq("id", fbContacto.id);
+        } catch (e) { console.error("❌ FB background error:", e); }
+      })();
 
       return new NextResponse("ok", { status: 200 });
     }
