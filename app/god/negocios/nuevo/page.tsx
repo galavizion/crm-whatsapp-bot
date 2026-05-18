@@ -47,11 +47,15 @@ async function createNegocio(formData: FormData) {
   });
 
   if (authError || !authUser?.user) {
-    // Revertir negocio creado
     await supabase.from("businesses").delete().eq("id", business.id);
     const msg = encodeURIComponent(authError?.message || "Error al crear usuario admin");
     redirect(`/god/negocios/nuevo?error=${msg}`);
   }
+
+  // Forzar confirmación de email por si Supabase lo ignora
+  await supabase.auth.admin.updateUserById(authUser.user.id, {
+    email_confirm: true,
+  });
 
   // 3. Agregar a business_users como admin
   await supabase.from("business_users").insert({

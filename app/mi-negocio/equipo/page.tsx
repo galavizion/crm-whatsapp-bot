@@ -64,6 +64,10 @@ async function addSeller(formData: FormData) {
     }
   } else {
     userId = authUser?.user?.id ?? null;
+    // Forzar confirmación de email por si Supabase lo ignora
+    if (userId) {
+      await admin.auth.admin.updateUserById(userId, { email_confirm: true });
+    }
   }
 
   if (!userId) redirect("/mi-negocio/equipo?error=sin_user_id");
