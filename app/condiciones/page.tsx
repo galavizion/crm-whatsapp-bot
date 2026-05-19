@@ -41,7 +41,7 @@ export default function CondicionesPage() {
 
       {/* Contenido */}
       <div style={{ maxWidth: 760, margin: "0 auto", padding: "60px 24px 96px" }}>
-        <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 16 }}>Última actualización: abril 2025</p>
+        <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 16 }}>Última actualización: mayo 2026</p>
         <h1 className="serif" style={{ fontSize: "clamp(32px, 5vw, 52px)", fontWeight: 400, lineHeight: 1.15, marginBottom: 32, color: "#1a2035" }}>
           Condiciones del Servicio
         </h1>
@@ -81,6 +81,22 @@ export default function CondicionesPage() {
             <li>No utilizar la plataforma para actividades ilegales, fraudulentas o que infrinjan derechos de terceros.</li>
             <li>No intentar acceder a cuentas o datos de otros usuarios.</li>
           </ul>
+
+          <h3>3.1 Política anti-spam</h3>
+          <p>
+            El bot de Prospekto está diseñado para <strong>responder mensajes que recibe tu negocio</strong>,
+            no para iniciar contacto masivo no solicitado. Queda estrictamente prohibido:
+          </p>
+          <ul>
+            <li>Usar el bot para enviar mensajes en masa a listas de contactos no suscritos.</li>
+            <li>Automatizar envíos a números obtenidos sin consentimiento del destinatario.</li>
+            <li>Ignorar solicitudes de los usuarios para dejar de recibir mensajes.</li>
+            <li>Usar listas de teléfonos compradas, rentadas o recopiladas sin consentimiento.</li>
+          </ul>
+          <p>
+            El incumplimiento de esta política puede resultar en la suspensión inmediata de la cuenta,
+            independientemente de las acciones que Meta pueda tomar sobre el número de WhatsApp Business.
+          </p>
 
           <h2>4. Integración con Meta / WhatsApp Business</h2>
           <p>

@@ -79,8 +79,8 @@ export default function PrivacidadPage() {
 
           <h2>3. Uso de inteligencia artificial</h2>
           <p>
-            Prospekto utiliza modelos de lenguaje de terceros (OpenAI y/o Anthropic Claude) para generar respuestas
-            automáticas en todas las plataformas integradas: WhatsApp, Facebook e Instagram. Esto incluye:
+            Prospekto utiliza la API de OpenAI para generar respuestas automáticas en todas las plataformas
+            integradas: WhatsApp, Facebook e Instagram. Esto incluye:
           </p>
           <ul>
             <li>Mensajes de WhatsApp recibidos por el bot del negocio.</li>
@@ -88,10 +88,28 @@ export default function PrivacidadPage() {
             <li>Mensajes directos o privados recibidos en Facebook Messenger e Instagram.</li>
           </ul>
           <p>
-            El texto de los mensajes y comentarios se envía a la API del proveedor de IA de forma cifrada
-            para generar una respuesta contextual. No utilizamos estos datos para entrenar modelos externos
-            ni los compartimos con terceros más allá del proveedor de IA necesario para operar el servicio.
+            El texto de los mensajes y comentarios se envía a la API de OpenAI de forma cifrada para generar
+            una respuesta contextual. <strong>OpenAI no utiliza los datos enviados a través de su API para
+            entrenar sus modelos</strong>, conforme a su{" "}
+            <a href="https://openai.com/policies/api-data-usage-policies" target="_blank" rel="noopener noreferrer">
+              Política de uso de datos de API
+            </a>. No compartimos estos datos con ningún otro tercero más allá de lo necesario para operar el servicio.
           </p>
+
+          <h2>3.1 Prospekto como procesador de datos</h2>
+          <p>
+            Prospekto actúa como <strong>procesador de datos</strong> en relación con los leads e información
+            de clientes finales. Esto significa que:
+          </p>
+          <ul>
+            <li>El negocio que contrata Prospekto es el <strong>responsable (controller)</strong> de los datos
+            de sus clientes y leads.</li>
+            <li>Prospekto únicamente procesa esos datos para prestar el servicio contratado: recibir mensajes,
+            generar respuestas automáticas y mostrarlos en el CRM.</li>
+            <li>El negocio es responsable de obtener el consentimiento de sus clientes para recibir mensajes
+            automatizados y recopilar sus datos.</li>
+            <li>Prospekto no vende, cede ni usa los datos de los leads para ningún fin ajeno al servicio.</li>
+          </ul>
 
           <h2>4. Integración con plataformas de Meta</h2>
 
@@ -152,16 +170,18 @@ export default function PrivacidadPage() {
           <h2>5. Compartición de datos</h2>
           <p>No vendemos ni alquilamos tu información personal. Podemos compartir datos únicamente con:</p>
           <ul>
-            <li><strong>Proveedores de servicio:</strong> OpenAI (procesamiento de IA), Meta (API de WhatsApp Business y Facebook Login), Supabase (base de datos), Vercel (hospedaje).</li>
+            <li><strong>OpenAI:</strong> procesamiento de IA para generar respuestas. No entrena modelos con datos de API.</li>
+            <li><strong>Meta:</strong> API de WhatsApp Business, Facebook e Instagram para envío y recepción de mensajes.</li>
+            <li><strong>Supabase:</strong> base de datos con cifrado en reposo. Infraestructura en servidores seguros.</li>
+            <li><strong>Vercel:</strong> hospedaje de la plataforma. Certificación SOC 2 Type II.</li>
             <li><strong>Autoridades competentes:</strong> cuando la ley mexicana lo exija.</li>
           </ul>
-          <p>Todos nuestros proveedores están sujetos a acuerdos de protección de datos.</p>
 
           <h2>6. Almacenamiento y seguridad</h2>
           <p>
-            Tus datos se almacenan en servidores seguros con cifrado en tránsito (TLS) y en reposo. Implementamos
-            controles de acceso y auditorías periódicas. Sin embargo, ningún sistema es 100% infalible y no podemos
-            garantizar seguridad absoluta.
+            Tus datos se almacenan en servidores seguros con cifrado en tránsito (TLS) y en reposo (Supabase).
+            Implementamos controles de acceso por roles para limitar quién puede ver qué información.
+            Sin embargo, ningún sistema es 100% infalible y no podemos garantizar seguridad absoluta.
           </p>
 
           <h2>7. Retención de datos</h2>
@@ -192,8 +212,11 @@ export default function PrivacidadPage() {
 
           <h2>10. Menores de edad</h2>
           <p>
-            Prospekto es un servicio dirigido a empresas y no está destinado a menores de 18 años. No recopilamos
-            datos de menores de forma intencionada.
+            Prospekto es un servicio B2B dirigido exclusivamente a empresas y profesionales. No está destinado
+            a menores de 18 años. Los usuarios deben ser mayores de edad y actuar en nombre de un negocio
+            legítimo al registrarse. No recopilamos datos de menores de forma intencionada. Si detectamos que
+            un negocio usa la plataforma para recopilar datos de menores sin las salvaguardas legales
+            correspondientes, podemos suspender la cuenta.
           </p>
 
           <h2>11. Cambios a esta política</h2>
