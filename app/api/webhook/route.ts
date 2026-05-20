@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse, after } from "next/server";
+import { NextRequest, NextResponse, after as _after } from "next/server";
+const after = _after as (task: () => Promise<void>) => void;
 import { createClient } from "@supabase/supabase-js";
 import { generateReply } from "@/lib/ai/reply";
 import { getSystemPrompt } from "@/lib/ai/systemPrompt";
