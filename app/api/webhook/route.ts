@@ -9,7 +9,7 @@ import { sendInstagramMessage } from "@/lib/ai/sendInstagramMessage";
 import { sendFacebookMessage } from "@/lib/ai/sendFacebookMessage";
 import { generateCommentReply } from "@/lib/ai/commentReply";
 import { sendInstagramCommentReply, sendInstagramPrivateReply } from "@/lib/ai/sendInstagramCommentReply";
-import { sendFacebookPrivateReply } from "@/lib/ai/sendFacebookCommentReply";
+import { sendFacebookCommentReply, sendFacebookPrivateReply } from "@/lib/ai/sendFacebookCommentReply";
 
 export const runtime = "nodejs";
 
