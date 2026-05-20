@@ -338,13 +338,16 @@ export async function POST(req: NextRequest) {
           platform: "facebook",
         });
 
-        // Requiere pages_manage_engagement Advanced Access (App Review pendiente)
-        // const pubResult = await sendFacebookCommentReply({
-        //   accessToken: fbCommentAccount.access_token,
-        //   commentId: postId,
-        //   message: public_reply,
-        // });
-        console.log("⏭️ Respuesta pública FB omitida — pendiente App Review");
+        const pubResult = await sendFacebookCommentReply({
+          accessToken: fbCommentAccount.access_token,
+          commentId,
+          message: public_reply,
+        });
+        if (!pubResult.ok) {
+          console.error("❌ Error respondiendo comentario Facebook:", JSON.stringify(pubResult.error));
+        } else {
+          console.log("✅ Respuesta pública al comentario FB enviada");
+        }
 
         if (open_dm && dm_message && isTopLevelComment && commentId) {
           const dmResult = await sendFacebookPrivateReply({
