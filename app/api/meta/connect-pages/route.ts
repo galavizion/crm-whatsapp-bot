@@ -65,7 +65,6 @@ export async function POST(req: NextRequest) {
     for (const page of pages) {
       const pageToken: string = page.access_token;
       const pageId: string = page.id;
-      const pageName: string = page.name;
 
       // Guardar página de Facebook
       const { error: fbError } = await admin.from("social_accounts").upsert(
@@ -80,6 +79,12 @@ export async function POST(req: NextRequest) {
       );
 
       if (!fbError) pagesConnected++;
+
+      // Suscribir la página al webhook para recibir mensajes y comentarios
+      await fetch(
+        `${GRAPH}/${pageId}/subscribed_apps?subscribed_fields=messages,messaging_postbacks,feed&access_token=${pageToken}`,
+        { method: "POST" }
+      );
 
       // Buscar cuenta de Instagram vinculada a esta página
       const igRes = await fetch(
