@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse, after as _after } from "next/server";
-const after = _after as unknown as (task: () => Promise<void>) => void;
+import { NextRequest, NextResponse } from "next/server";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { after } = require("next/server") as { after: (task: () => Promise<void>) => void };
 import { createClient } from "@supabase/supabase-js";
 import { generateReply } from "@/lib/ai/reply";
 import { getSystemPrompt } from "@/lib/ai/systemPrompt";
