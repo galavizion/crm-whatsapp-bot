@@ -70,15 +70,6 @@ export default function ConnectMetaPagesButton({ businessId, platform = "both" }
     setStatus("idle");
     setMessage("");
 
-    if (window.FB && window.FB.init) {
-      window.FB.init({
-        appId: process.env.NEXT_PUBLIC_META_APP_ID!,
-        autoLogAppEvents: true,
-        xfbml: true,
-        version: "v23.0",
-      });
-    }
-
     window.FB.login(
       (response: any) => { handleFBResponse(response); },
       { scope: SCOPES[platform] }
