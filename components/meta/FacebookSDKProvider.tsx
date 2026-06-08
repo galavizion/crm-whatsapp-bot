@@ -14,7 +14,7 @@ export default function FacebookSDKProvider() {
   useEffect(() => {
     if (window.__fbReady) return;
 
-    window.fbAsyncInit = function () {
+    const initFB = () => {
       window.FB.init({
         appId: process.env.NEXT_PUBLIC_META_APP_ID!,
         autoLogAppEvents: true,
@@ -24,6 +24,11 @@ export default function FacebookSDKProvider() {
       window.__fbReady = true;
       window.dispatchEvent(new Event("fb-ready"));
     };
+
+    // SDK already loaded but not initialized (e.g. SPA navigation)
+    if (window.FB) { initFB(); return; }
+
+    window.fbAsyncInit = initFB;
 
     if (!document.getElementById("facebook-jssdk")) {
       const script = document.createElement("script");

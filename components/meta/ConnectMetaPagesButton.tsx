@@ -25,10 +25,24 @@ export default function ConnectMetaPagesButton({ businessId }: Props) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     if (window.__fbReady) { setSdkReady(true); return; }
+
     const onReady = () => setSdkReady(true);
     window.addEventListener("fb-ready", onReady);
-    return () => window.removeEventListener("fb-ready", onReady);
+
+    // Fallback: check every 500ms in case the event was missed
+    const interval = setInterval(() => {
+      if (window.__fbReady) {
+        setSdkReady(true);
+        clearInterval(interval);
+      }
+    }, 500);
+
+    return () => {
+      window.removeEventListener("fb-ready", onReady);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleFBResponse = async (response: any) => {
