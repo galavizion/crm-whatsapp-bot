@@ -8,6 +8,7 @@ declare global {
   interface Window {
     FB: any;
     fbAsyncInit: () => void;
+    __fbReady: boolean;
   }
 }
 
@@ -24,28 +25,10 @@ export default function ConnectMetaPagesButton({ businessId }: Props) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-
-    const tryInit = () => {
-      if (window.FB) {
-        window.FB.init({
-          appId: process.env.NEXT_PUBLIC_META_APP_ID!,
-          autoLogAppEvents: true,
-          xfbml: true,
-          version: "v23.0",
-        });
-        setSdkReady(true);
-        return true;
-      }
-      return false;
-    };
-
-    if (tryInit()) return;
-
-    const interval = setInterval(() => {
-      if (tryInit()) clearInterval(interval);
-    }, 100);
-
-    return () => clearInterval(interval);
+    if (window.__fbReady) { setSdkReady(true); return; }
+    const onReady = () => setSdkReady(true);
+    window.addEventListener("fb-ready", onReady);
+    return () => window.removeEventListener("fb-ready", onReady);
   }, []);
 
   const handleFBResponse = async (response: any) => {
