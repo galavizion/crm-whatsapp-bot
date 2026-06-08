@@ -10,20 +10,12 @@ declare global {
 
 function doInit() {
   if (window.__fbReady) return;
-  const appId = process.env.NEXT_PUBLIC_META_APP_ID;
-  console.log("[FB doInit] appId =", appId, "| FB object keys:", window.FB ? Object.keys(window.FB).slice(0, 8) : "none");
   window.FB.init({
-    appId,
+    appId: process.env.NEXT_PUBLIC_META_APP_ID!,
     cookie: true,
     xfbml: true,
     version: "v23.0",
   });
-  console.log("[FB doInit] FB.init() called. Calling FB.getLoginStatus to verify...");
-  try {
-    window.FB.getLoginStatus((r: any) => console.log("[FB doInit] loginStatus response:", r?.status));
-  } catch (e) {
-    console.error("[FB doInit] getLoginStatus threw:", e);
-  }
   window.__fbReady = true;
   const cbs = window.__fbCallbacks ?? [];
   window.__fbCallbacks = [];
@@ -39,10 +31,12 @@ export function onFBReady(cb: () => void) {
 
 export function initFBSDK() {
   if (typeof window === "undefined") return;
-  if (window.__fbReady) return;
-  if (window.__fbStarted) return;
+  if (window.__fbReady || window.__fbStarted) return;
   window.__fbStarted = true;
 
+  // fbAsyncInit must be set before the script loads — the SDK calls it when ready.
+  // Never call FB.init() directly on an existing window.FB: the object may exist
+  // (disk cache) before the SDK's internal state is ready to accept init.
   window.fbAsyncInit = doInit;
 
   const old = document.getElementById("facebook-jssdk");
@@ -52,6 +46,5 @@ export function initFBSDK() {
   script.id = "facebook-jssdk";
   script.src = "https://connect.facebook.net/en_US/sdk.js";
   script.async = true;
-  script.defer = true;
   document.head.appendChild(script);
 }
