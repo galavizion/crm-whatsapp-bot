@@ -1,6 +1,5 @@
 import "./globals.css";
 import { Metadata } from "next";
-import Script from "next/script";
 import ClientLayout from "@/components/layout/ClientLayout";
 
 const BASE_URL = "https://prospekto.mx";
@@ -107,23 +106,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#8c7ac6" />
       </head>
       <body className="bg-[#f7f5fb] text-slate-900 antialiased">
-        <Script id="fb-init" strategy="beforeInteractive">{`
-          window.fbAsyncInit = function() {
-            FB.init({
-              appId: '${process.env.NEXT_PUBLIC_META_APP_ID}',
-              autoLogAppEvents: true,
-              xfbml: true,
-              version: 'v23.0'
-            });
-            window.__fbReady = true;
-            window.dispatchEvent(new Event('fb-ready'));
-          };
-        `}</Script>
-        <Script
-          id="facebook-jssdk"
-          src="https://connect.facebook.net/en_US/sdk.js"
-          strategy="afterInteractive"
-        />
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>

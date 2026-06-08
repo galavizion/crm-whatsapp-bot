@@ -3,13 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MessageCircle, Loader2, CheckCircle, XCircle } from "lucide-react";
-
-declare global {
-  interface Window {
-    FB: any;
-    fbAsyncInit: () => void;
-  }
-}
+import { onFBReady, initFBSDK } from "@/lib/fbSdk";
 
 interface Props {
   businessId: string;
@@ -23,33 +17,8 @@ export default function ConnectWhatsAppButton({ businessId }: Props) {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const initFB = () => {
-      window.FB.init({
-        appId: process.env.NEXT_PUBLIC_META_APP_ID!,
-        autoLogAppEvents: true,
-        xfbml: true,
-        version: "v23.0",
-      });
-      setSdkReady(true);
-    };
-
-    if (window.FB) {
-      initFB();
-      return;
-    }
-
-    window.fbAsyncInit = initFB;
-
-    if (!document.getElementById("facebook-jssdk")) {
-      const script = document.createElement("script");
-      script.id = "facebook-jssdk";
-      script.src = "https://connect.facebook.net/es_LA/sdk.js";
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
-    }
+    onFBReady(() => setSdkReady(true));
+    initFBSDK();
   }, []);
 
   const handleConnect = () => {

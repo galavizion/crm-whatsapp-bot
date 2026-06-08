@@ -3,14 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
-
-declare global {
-  interface Window {
-    FB: any;
-    fbAsyncInit: () => void;
-    __fbReady: boolean;
-  }
-}
+import { onFBReady, initFBSDK } from "@/lib/fbSdk";
 
 interface Props {
   businessId: string;
@@ -24,10 +17,8 @@ export default function ConnectMetaPagesButton({ businessId }: Props) {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (window.__fbReady) { setSdkReady(true); return; }
-    const onReady = () => setSdkReady(true);
-    window.addEventListener("fb-ready", onReady);
-    return () => window.removeEventListener("fb-ready", onReady);
+    onFBReady(() => setSdkReady(true));
+    initFBSDK();
   }, []);
 
   const handleFBResponse = async (response: any) => {
