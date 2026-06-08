@@ -34,7 +34,7 @@ export function getSystemPrompt({
   business?: Business | null;
   contacto: Contacto;
   mensajeUsuario?: string;
-  platform?: 'whatsapp' | 'instagram' | 'facebook';
+  platform?: 'whatsapp' | 'instagram' | 'facebook' | 'web';
 }) {
   const datosCliente = [
     contacto.nombre ? `Nombre: ${contacto.nombre}` : null,
@@ -49,17 +49,23 @@ export function getSystemPrompt({
 
   const yaAgendoLlamada = contacto.estado === "contactar";
   const esSocial = platform === 'instagram' || platform === 'facebook';
+  const esWeb = platform === 'web';
   const tieneTelefono = contacto.datos_extra && /tel:/i.test(contacto.datos_extra);
 
   // Buscar productos relevantes al mensaje del cliente
   const productosRelevantes = buscarProductos(business?.catalogo ?? null, mensajeUsuario)
 
-  const canalNombre = platform === 'instagram' ? 'Instagram' : platform === 'facebook' ? 'Facebook' : 'WhatsApp';
+  const canalNombre = platform === 'instagram' ? 'Instagram' : platform === 'facebook' ? 'Facebook' : platform === 'web' ? 'chat en el sitio web' : 'WhatsApp';
 
   const estiloCanal = platform === 'whatsapp'
     ? `- Mensajes cortos tipo WhatsApp real
 - 1 a 3 párrafos máximo
 - Conversación natural, sin formato raro ni listas largas`
+    : esWeb
+    ? `- Respuestas claras y útiles, máximo 3 párrafos
+- Puedes usar listas cortas si ayudan a entender
+- Tono amigable y profesional, como en un chat de sitio web
+- No uses markdown complejo, solo texto plano`
     : `- Respuestas MUY cortas, máximo 2 líneas
 - Puedes usar emojis de forma natural
 - Tono informal y directo, como en redes sociales

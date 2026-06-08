@@ -54,7 +54,10 @@ async function createNegocio(formData: FormData) {
       const existing = listData?.users?.find((u) => u.email === adminEmail);
       if (existing) {
         adminUserId = existing.id;
-        await supabase.auth.admin.updateUserById(adminUserId, { password: adminPassword });
+        await supabase.auth.admin.updateUserById(adminUserId, {
+          password: adminPassword,
+          email_confirm: true,
+        });
       } else {
         await supabase.from("businesses").delete().eq("id", business.id);
         redirect("/god/negocios/nuevo?error=usuario_no_encontrado");
@@ -69,6 +72,8 @@ async function createNegocio(formData: FormData) {
     redirect("/god/negocios/nuevo?error=sin_user_id");
   } else {
     adminUserId = authUser.user.id;
+    // Doble confirmación: forzar email_confirm aunque el proyecto tenga confirmación activa
+    await supabase.auth.admin.updateUserById(adminUserId, { email_confirm: true });
   }
 
   // 3. Agregar a business_users como admin

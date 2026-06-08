@@ -14,10 +14,12 @@ export async function generateReply({
   systemPrompt,
   userPrompt,
   history = [],
+  maxTokens = 150,
 }: {
   systemPrompt: string;
   userPrompt: string;
   history?: Message[];
+  maxTokens?: number;
 }): Promise<string> {
   if (!OPENAI_API_KEY) {
     return "Gracias por escribirnos. En breve te apoyamos con tu solicitud.";
@@ -33,7 +35,7 @@ export async function generateReply({
     const completion = await openai.chat.completions.create({
       model: OPENAI_MODEL,
         temperature: 0.7,
-      max_tokens: 150, // ✅ Optimización: respuestas concisas para WhatsApp
+      max_tokens: maxTokens,
       messages,
     });
 
