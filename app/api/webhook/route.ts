@@ -112,6 +112,7 @@ export async function POST(req: NextRequest) {
           console.log("✅ Respuesta pública al comentario enviada");
         }
 
+        let igSentDm = false;
         if (open_dm && dm_message && isTopLevelComment && commentId) {
           const dmResult = await sendInstagramPrivateReply({
             accessToken: igCommentAccount.access_token,
@@ -122,8 +123,20 @@ export async function POST(req: NextRequest) {
             console.error("❌ Error enviando private reply Instagram:", JSON.stringify(dmResult.error));
           } else {
             console.log("✅ Instagram private reply enviado al autor del comentario");
+            igSentDm = true;
           }
         }
+
+        // Guardar comentario en BD (ignorar error de duplicado)
+        await supabase.from("social_comments").upsert({
+          business_id: igCommentAccount.business_id,
+          platform: "instagram",
+          comment_id: commentId,
+          author_id: commentAuthorId,
+          text: commentText,
+          bot_reply: public_reply,
+          sent_dm: igSentDm,
+        }, { onConflict: "comment_id", ignoreDuplicates: true });
 
         return new NextResponse("ok", { status: 200 });
       }
@@ -349,6 +362,7 @@ export async function POST(req: NextRequest) {
           console.log("✅ Respuesta pública al comentario FB enviada");
         }
 
+        let fbSentDm = false;
         if (open_dm && dm_message && isTopLevelComment && commentId) {
           const dmResult = await sendFacebookPrivateReply({
             accessToken: fbCommentAccount.access_token,
@@ -359,8 +373,21 @@ export async function POST(req: NextRequest) {
             console.error("❌ Error enviando private reply Facebook:", JSON.stringify(dmResult.error));
           } else {
             console.log("✅ Facebook private reply enviado al autor del comentario");
+            fbSentDm = true;
           }
         }
+
+        // Guardar comentario en BD (ignorar error de duplicado)
+        await supabase.from("social_comments").upsert({
+          business_id: fbCommentAccount.business_id,
+          platform: "facebook",
+          comment_id: commentId,
+          author_id: commentAuthorId,
+          text: commentText,
+          bot_reply: public_reply,
+          post_id: postId || null,
+          sent_dm: fbSentDm,
+        }, { onConflict: "comment_id", ignoreDuplicates: true });
 
         return new NextResponse("ok", { status: 200 });
       }
