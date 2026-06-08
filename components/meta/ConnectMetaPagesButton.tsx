@@ -42,7 +42,7 @@ export default function ConnectMetaPagesButton({ businessId }: Props) {
     if (!document.getElementById("facebook-jssdk")) {
       const script = document.createElement("script");
       script.id = "facebook-jssdk";
-      script.src = "https://connect.facebook.net/es_LA/sdk.js";
+      script.src = "https://connect.facebook.net/en_US/sdk.js";
       script.async = true;
       script.defer = true;
       document.head.appendChild(script);
@@ -92,7 +92,7 @@ export default function ConnectMetaPagesButton({ businessId }: Props) {
         }
       },
       {
-        scope: "pages_show_list,pages_messaging,instagram_basic,instagram_manage_messages,public_profile",
+        scope: "pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,instagram_basic,instagram_manage_messages,instagram_manage_comments,public_profile",
       }
     );
   };
