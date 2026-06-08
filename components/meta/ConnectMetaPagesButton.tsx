@@ -49,6 +49,42 @@ export default function ConnectMetaPagesButton({ businessId }: Props) {
     }
   }, []);
 
+  const handleFBResponse = async (response: any) => {
+    if (!response.authResponse?.accessToken) {
+      setLoading(false);
+      setStatus("error");
+      setMessage("El usuario canceló o no autorizó el proceso.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/meta/connect-pages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accessToken: response.authResponse.accessToken,
+          businessId,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al conectar");
+
+      const parts: string[] = [];
+      if (data.pagesConnected > 0) parts.push(`${data.pagesConnected} página(s) de Facebook`);
+      if (data.instagramConnected > 0) parts.push(`${data.instagramConnected} cuenta(s) de Instagram`);
+
+      setStatus("success");
+      setMessage(parts.length > 0 ? `¡Conectado! ${parts.join(" y ")}` : "Conectado correctamente");
+      router.refresh();
+    } catch (err: any) {
+      setStatus("error");
+      setMessage(err.message || "Error inesperado");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleConnect = () => {
     if (!sdkReady || loading) return;
     setLoading(true);
@@ -56,41 +92,7 @@ export default function ConnectMetaPagesButton({ businessId }: Props) {
     setMessage("");
 
     window.FB.login(
-      async (response: any) => {
-        if (!response.authResponse?.accessToken) {
-          setLoading(false);
-          setStatus("error");
-          setMessage("El usuario canceló o no autorizó el proceso.");
-          return;
-        }
-
-        try {
-          const res = await fetch("/api/meta/connect-pages", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              accessToken: response.authResponse.accessToken,
-              businessId,
-            }),
-          });
-
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Error al conectar");
-
-          const parts: string[] = [];
-          if (data.pagesConnected > 0) parts.push(`${data.pagesConnected} página(s) de Facebook`);
-          if (data.instagramConnected > 0) parts.push(`${data.instagramConnected} cuenta(s) de Instagram`);
-
-          setStatus("success");
-          setMessage(parts.length > 0 ? `¡Conectado! ${parts.join(" y ")}` : "Conectado correctamente");
-          router.refresh();
-        } catch (err: any) {
-          setStatus("error");
-          setMessage(err.message || "Error inesperado");
-        } finally {
-          setLoading(false);
-        }
-      },
+      (response: any) => { handleFBResponse(response); },
       {
         scope: "pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,instagram_basic,instagram_manage_messages,instagram_manage_comments,public_profile",
       }
