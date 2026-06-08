@@ -104,19 +104,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es">
       <head>
         <meta name="theme-color" content="#8c7ac6" />
-        <script dangerouslySetInnerHTML={{ __html: `
-          window.fbAsyncInit = function() {
-            FB.init({
-              appId: '${process.env.NEXT_PUBLIC_META_APP_ID}',
-              autoLogAppEvents: true,
-              xfbml: true,
-              version: 'v23.0'
-            });
-            window.__fbReady = true;
-            window.dispatchEvent(new Event('fb-ready'));
-          };
-        `}} />
-        <script async defer crossOrigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js" />
       </head>
       <body className="bg-[#f7f5fb] text-slate-900 antialiased">
         <ClientLayout>{children}</ClientLayout>
