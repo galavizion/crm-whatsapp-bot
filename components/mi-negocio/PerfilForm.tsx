@@ -146,7 +146,7 @@ export default function PerfilForm({ businessId, isGod, initial }: Props) {
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
         <h2 className="font-semibold text-slate-800 mb-4">Foto de perfil</h2>
         <div className="flex items-center gap-5">
-          <div className="w-20 h-20 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+          <div className="w-20 h-20 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0">
             {photo
               ? <Image src={photo} alt="Foto" width={80} height={80} className="w-full h-full object-cover" />
               : <Upload className="w-6 h-6 text-slate-400" />
@@ -225,9 +225,9 @@ export default function PerfilForm({ businessId, isGod, initial }: Props) {
                 type="checkbox"
                 checked={hours[key].enabled}
                 onChange={() => toggleDay(key)}
-                className="w-4 h-4 accent-purple-500 flex-shrink-0"
+                className="w-4 h-4 accent-purple-500 shrink-0"
               />
-              <span className={`text-sm font-medium w-24 flex-shrink-0 ${hours[key].enabled ? "text-slate-800" : "text-slate-400"}`}>
+              <span className={`text-sm font-medium w-24 shrink-0 ${hours[key].enabled ? "text-slate-800" : "text-slate-400"}`}>
                 {label}
               </span>
               {hours[key].enabled ? (
