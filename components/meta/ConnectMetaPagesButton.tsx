@@ -8,7 +8,44 @@ declare global {
   interface Window {
     FB: any;
     fbAsyncInit: () => void;
-    __fbReady: boolean;
+  }
+}
+
+// Module-level singleton — shared across all instances on the same page
+let sdkInitialized = false;
+const readyCallbacks: (() => void)[] = [];
+
+function onFBReady(cb: () => void) {
+  if (sdkInitialized) { cb(); return; }
+  readyCallbacks.push(cb);
+}
+
+function initSDK() {
+  if (sdkInitialized) return;
+
+  const doInit = () => {
+    window.FB.init({
+      appId: process.env.NEXT_PUBLIC_META_APP_ID!,
+      autoLogAppEvents: true,
+      xfbml: true,
+      version: "v23.0",
+    });
+    sdkInitialized = true;
+    readyCallbacks.forEach((cb) => cb());
+    readyCallbacks.length = 0;
+  };
+
+  if (window.FB) { doInit(); return; }
+
+  window.fbAsyncInit = doInit;
+
+  if (!document.getElementById("facebook-jssdk")) {
+    const script = document.createElement("script");
+    script.id = "facebook-jssdk";
+    script.src = "https://connect.facebook.net/en_US/sdk.js";
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
   }
 }
 
@@ -24,25 +61,8 @@ export default function ConnectMetaPagesButton({ businessId }: Props) {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    if (window.__fbReady) { setSdkReady(true); return; }
-
-    const onReady = () => setSdkReady(true);
-    window.addEventListener("fb-ready", onReady);
-
-    // Fallback: check every 500ms in case the event was missed
-    const interval = setInterval(() => {
-      if (window.__fbReady) {
-        setSdkReady(true);
-        clearInterval(interval);
-      }
-    }, 500);
-
-    return () => {
-      window.removeEventListener("fb-ready", onReady);
-      clearInterval(interval);
-    };
+    onFBReady(() => setSdkReady(true));
+    initSDK();
   }, []);
 
   const handleFBResponse = async (response: any) => {
