@@ -104,6 +104,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es">
       <head>
         <meta name="theme-color" content="#8c7ac6" />
+        <script
+          async
+          defer
+          crossOrigin="anonymous"
+          src="https://connect.facebook.net/en_US/sdk.js"
+        />
       </head>
       <body className="bg-[#f7f5fb] text-slate-900 antialiased">
         <ClientLayout>{children}</ClientLayout>

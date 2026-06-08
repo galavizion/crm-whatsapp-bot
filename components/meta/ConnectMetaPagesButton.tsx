@@ -25,28 +25,27 @@ export default function ConnectMetaPagesButton({ businessId }: Props) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const initFB = () => {
-      window.FB.init({
-        appId: process.env.NEXT_PUBLIC_META_APP_ID!,
-        autoLogAppEvents: true,
-        xfbml: true,
-        version: "v23.0",
-      });
-      setSdkReady(true);
+    const tryInit = () => {
+      if (window.FB) {
+        window.FB.init({
+          appId: process.env.NEXT_PUBLIC_META_APP_ID!,
+          autoLogAppEvents: true,
+          xfbml: true,
+          version: "v23.0",
+        });
+        setSdkReady(true);
+        return true;
+      }
+      return false;
     };
 
-    if (window.FB) { initFB(); return; }
+    if (tryInit()) return;
 
-    window.fbAsyncInit = initFB;
+    const interval = setInterval(() => {
+      if (tryInit()) clearInterval(interval);
+    }, 100);
 
-    if (!document.getElementById("facebook-jssdk")) {
-      const script = document.createElement("script");
-      script.id = "facebook-jssdk";
-      script.src = "https://connect.facebook.net/en_US/sdk.js";
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
-    }
+    return () => clearInterval(interval);
   }, []);
 
   const handleFBResponse = async (response: any) => {
