@@ -1,5 +1,4 @@
 import TabsNav from "@/components/mi-negocio/TabsNav";
-import FBSDKInit from "@/components/meta/FBSDKInit";
 import { Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
@@ -33,7 +32,6 @@ export default async function MiNegocioLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <FBSDKInit />
       <div className="max-w-3xl mx-auto p-4 md:p-6 space-y-5">
 
         {/* HEADER */}

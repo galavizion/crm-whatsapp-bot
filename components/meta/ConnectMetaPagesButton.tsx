@@ -70,12 +70,6 @@ export default function ConnectMetaPagesButton({ businessId, platform = "both" }
     setStatus("idle");
     setMessage("");
 
-    // Diagnóstico: reportar estado exacto del SDK al momento del clic
-    console.log("[FB] window.FB:", typeof window.FB, window.FB ? "exists" : "missing");
-    console.log("[FB] window.__fbReady:", window.__fbReady);
-    console.log("[FB] FB.init type:", window.FB ? typeof window.FB.init : "n/a");
-    console.log("[FB] FB.login type:", window.FB ? typeof window.FB.login : "n/a");
-
     window.FB.login(
       (response: any) => { handleFBResponse(response); },
       { scope: SCOPES[platform] }
