@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateReply } from "@/lib/ai/reply";
 import { getSystemPrompt } from "@/lib/ai/systemPrompt";
@@ -73,70 +73,72 @@ export async function POST(req: NextRequest) {
 
         console.log(`💬 Instagram comentario | id: ${commentId} | texto: "${commentText}"`);
 
-        const { data: igCommentAccount } = await supabase
-          .from("social_accounts")
-          .select("business_id, access_token")
-          .eq("instagram_account_id", igAccountId)
-          .eq("platform", "instagram")
-          .eq("is_active", true)
-          .maybeSingle();
+        // Responder a Meta inmediatamente; procesar IA y envío en background
+        after(async () => {
+          try {
+            const { data: igCommentAccount } = await supabase
+              .from("social_accounts")
+              .select("business_id, access_token")
+              .eq("instagram_account_id", igAccountId)
+              .eq("platform", "instagram")
+              .eq("is_active", true)
+              .maybeSingle();
 
-        if (!igCommentAccount?.business_id) {
-          return new NextResponse("ok", { status: 200 });
-        }
+            if (!igCommentAccount?.business_id) return;
 
-        const { data: igCommentBusiness } = await supabase
-          .from("businesses")
-          .select("name, servicios, tono_bot, status, catalogo")
-          .eq("id", igCommentAccount.business_id)
-          .maybeSingle();
+            const { data: igCommentBusiness } = await supabase
+              .from("businesses")
+              .select("name, servicios, tono_bot, status, catalogo")
+              .eq("id", igCommentAccount.business_id)
+              .maybeSingle();
 
-        if (igCommentBusiness?.status === "suspended" || igCommentBusiness?.status === "cancelled") {
-          return new NextResponse("ok", { status: 200 });
-        }
+            if (igCommentBusiness?.status === "suspended" || igCommentBusiness?.status === "cancelled") return;
 
-        const { public_reply, open_dm, dm_message } = await generateCommentReply({
-          business: igCommentBusiness,
-          commentText,
-          platform: "instagram",
-        });
+            const { public_reply, open_dm, dm_message } = await generateCommentReply({
+              business: igCommentBusiness,
+              commentText,
+              platform: "instagram",
+            });
 
-        const pubResult = await sendInstagramCommentReply({
-          accessToken: igCommentAccount.access_token,
-          commentId,
-          message: public_reply,
-        });
-        if (!pubResult.ok) {
-          console.error("❌ Error respondiendo comentario Instagram:", JSON.stringify(pubResult.error));
-        } else {
-          console.log("✅ Respuesta pública al comentario enviada");
-        }
+            const pubResult = await sendInstagramCommentReply({
+              accessToken: igCommentAccount.access_token,
+              commentId,
+              message: public_reply,
+            });
+            if (!pubResult.ok) {
+              console.error("❌ Error respondiendo comentario Instagram:", JSON.stringify(pubResult.error));
+            } else {
+              console.log("✅ Respuesta pública al comentario enviada");
+            }
 
-        let igSentDm = false;
-        if (open_dm && dm_message && isTopLevelComment && commentId) {
-          const dmResult = await sendInstagramPrivateReply({
-            accessToken: igCommentAccount.access_token,
-            commentId,
-            message: dm_message,
-          });
-          if (!dmResult.ok) {
-            console.error("❌ Error enviando private reply Instagram:", JSON.stringify(dmResult.error));
-          } else {
-            console.log("✅ Instagram private reply enviado al autor del comentario");
-            igSentDm = true;
+            let igSentDm = false;
+            if (open_dm && dm_message && isTopLevelComment && commentId) {
+              const dmResult = await sendInstagramPrivateReply({
+                accessToken: igCommentAccount.access_token,
+                commentId,
+                message: dm_message,
+              });
+              if (!dmResult.ok) {
+                console.error("❌ Error enviando private reply Instagram:", JSON.stringify(dmResult.error));
+              } else {
+                console.log("✅ Instagram private reply enviado al autor del comentario");
+                igSentDm = true;
+              }
+            }
+
+            await supabase.from("social_comments").upsert({
+              business_id: igCommentAccount.business_id,
+              platform: "instagram",
+              comment_id: commentId,
+              author_id: commentAuthorId,
+              text: commentText,
+              bot_reply: public_reply,
+              sent_dm: igSentDm,
+            }, { onConflict: "comment_id", ignoreDuplicates: true });
+          } catch (e) {
+            console.error("❌ IG comment background error:", e);
           }
-        }
-
-        // Guardar comentario en BD (ignorar error de duplicado)
-        await supabase.from("social_comments").upsert({
-          business_id: igCommentAccount.business_id,
-          platform: "instagram",
-          comment_id: commentId,
-          author_id: commentAuthorId,
-          text: commentText,
-          bot_reply: public_reply,
-          sent_dm: igSentDm,
-        }, { onConflict: "comment_id", ignoreDuplicates: true });
+        });
 
         return new NextResponse("ok", { status: 200 });
       }
@@ -298,9 +300,7 @@ export async function POST(req: NextRequest) {
       // ── Comentarios ──
       if (change?.field === "feed" && change?.value?.item === "comment") {
         const verb: string = change.value?.verb || "";
-        const commentIdRaw: string = change.value?.comment_id || "";
-        // Graph API private_replies necesita el ID completo "{post_id}_{comment_id}"
-        const commentId: string = commentIdRaw;
+        const commentId: string = change.value?.comment_id || "";
         const commentText: string = change.value?.message || "";
         const pageId: string = body.entry?.[0]?.id || "";
         const commentAuthorId: string = change.value?.from?.id || "";
@@ -326,73 +326,75 @@ export async function POST(req: NextRequest) {
 
         console.log(`💬 Facebook comentario | id: ${commentId} | texto: "${commentText}"`);
 
-        const { data: fbCommentAccount } = await supabase
-          .from("social_accounts")
-          .select("business_id, access_token")
-          .eq("page_id", pageId)
-          .eq("platform", "facebook")
-          .eq("is_active", true)
-          .maybeSingle();
+        // Responder a Meta inmediatamente; procesar IA y envío en background
+        after(async () => {
+          try {
+            const { data: fbCommentAccount } = await supabase
+              .from("social_accounts")
+              .select("business_id, access_token")
+              .eq("page_id", pageId)
+              .eq("platform", "facebook")
+              .eq("is_active", true)
+              .maybeSingle();
 
-        if (!fbCommentAccount?.business_id) {
-          return new NextResponse("ok", { status: 200 });
-        }
+            if (!fbCommentAccount?.business_id) return;
 
-        console.log("🔑 FB token en uso:", fbCommentAccount.access_token?.slice(0, 20) + "...");
+            console.log("🔑 FB token en uso:", fbCommentAccount.access_token?.slice(0, 20) + "...");
 
-        const { data: fbCommentBusiness } = await supabase
-          .from("businesses")
-          .select("name, servicios, tono_bot, status, catalogo")
-          .eq("id", fbCommentAccount.business_id)
-          .maybeSingle();
+            const { data: fbCommentBusiness } = await supabase
+              .from("businesses")
+              .select("name, servicios, tono_bot, status, catalogo")
+              .eq("id", fbCommentAccount.business_id)
+              .maybeSingle();
 
-        if (fbCommentBusiness?.status === "suspended" || fbCommentBusiness?.status === "cancelled") {
-          return new NextResponse("ok", { status: 200 });
-        }
+            if (fbCommentBusiness?.status === "suspended" || fbCommentBusiness?.status === "cancelled") return;
 
-        const { public_reply, open_dm, dm_message } = await generateCommentReply({
-          business: fbCommentBusiness,
-          commentText,
-          platform: "facebook",
-        });
+            const { public_reply, open_dm, dm_message } = await generateCommentReply({
+              business: fbCommentBusiness,
+              commentText,
+              platform: "facebook",
+            });
 
-        const pubResult = await sendFacebookCommentReply({
-          accessToken: fbCommentAccount.access_token,
-          commentId,
-          message: public_reply,
-        });
-        if (!pubResult.ok) {
-          console.error("❌ Error respondiendo comentario Facebook:", JSON.stringify(pubResult.error));
-        } else {
-          console.log("✅ Respuesta pública al comentario FB enviada");
-        }
+            const pubResult = await sendFacebookCommentReply({
+              accessToken: fbCommentAccount.access_token,
+              commentId,
+              message: public_reply,
+            });
+            if (!pubResult.ok) {
+              console.error("❌ Error respondiendo comentario Facebook:", JSON.stringify(pubResult.error));
+            } else {
+              console.log("✅ Respuesta pública al comentario FB enviada");
+            }
 
-        let fbSentDm = false;
-        if (open_dm && dm_message && isTopLevelComment && commentId) {
-          const dmResult = await sendFacebookPrivateReply({
-            accessToken: fbCommentAccount.access_token,
-            commentId,
-            message: dm_message,
-          });
-          if (!dmResult.ok) {
-            console.error("❌ Error enviando private reply Facebook:", JSON.stringify(dmResult.error));
-          } else {
-            console.log("✅ Facebook private reply enviado al autor del comentario");
-            fbSentDm = true;
+            let fbSentDm = false;
+            if (open_dm && dm_message && isTopLevelComment && commentId) {
+              const dmResult = await sendFacebookPrivateReply({
+                accessToken: fbCommentAccount.access_token,
+                commentId,
+                message: dm_message,
+              });
+              if (!dmResult.ok) {
+                console.error("❌ Error enviando private reply Facebook:", JSON.stringify(dmResult.error));
+              } else {
+                console.log("✅ Facebook private reply enviado al autor del comentario");
+                fbSentDm = true;
+              }
+            }
+
+            await supabase.from("social_comments").upsert({
+              business_id: fbCommentAccount.business_id,
+              platform: "facebook",
+              comment_id: commentId,
+              author_id: commentAuthorId,
+              text: commentText,
+              bot_reply: public_reply,
+              post_id: postId || null,
+              sent_dm: fbSentDm,
+            }, { onConflict: "comment_id", ignoreDuplicates: true });
+          } catch (e) {
+            console.error("❌ FB comment background error:", e);
           }
-        }
-
-        // Guardar comentario en BD (ignorar error de duplicado)
-        await supabase.from("social_comments").upsert({
-          business_id: fbCommentAccount.business_id,
-          platform: "facebook",
-          comment_id: commentId,
-          author_id: commentAuthorId,
-          text: commentText,
-          bot_reply: public_reply,
-          post_id: postId || null,
-          sent_dm: fbSentDm,
-        }, { onConflict: "comment_id", ignoreDuplicates: true });
+        });
 
         return new NextResponse("ok", { status: 200 });
       }
