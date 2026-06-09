@@ -290,6 +290,11 @@ export async function POST(req: NextRequest) {
       const messaging = body.entry?.[0]?.messaging?.[0];
       const change = body.entry?.[0]?.changes?.[0];
 
+      console.log("📘 PAGE ENTRY ID:", body.entry?.[0]?.id);
+      console.log("📘 CHANGE FIELD:", change?.field);
+      console.log("📘 ITEM:", change?.value?.item);
+      console.log("📘 MESSAGING:", JSON.stringify(messaging));
+
       // ── Comentarios ──
       if (change?.field === "feed" && change?.value?.item === "comment") {
         const verb: string = change.value?.verb || "";
