@@ -81,10 +81,16 @@ export async function POST(req: NextRequest) {
       if (!fbError) pagesConnected++;
 
       // Suscribir la página al webhook para recibir mensajes y comentarios
-      await fetch(
+      const subRes = await fetch(
         `${GRAPH}/${pageId}/subscribed_apps?subscribed_fields=messages,messaging_postbacks,feed&access_token=${pageToken}`,
         { method: "POST" }
       );
+      const subData = await subRes.json();
+      if (!subRes.ok || !subData.success) {
+        console.error(`❌ Error suscribiendo webhook para página ${pageId}:`, JSON.stringify(subData));
+      } else {
+        console.log(`✅ Webhook suscrito para página ${pageId} (messages + feed)`);
+      }
 
       // Buscar cuenta de Instagram vinculada a esta página
       const igRes = await fetch(
