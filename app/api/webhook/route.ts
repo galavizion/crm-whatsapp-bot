@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse, after } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateReply } from "@/lib/ai/reply";
 import { getSystemPrompt } from "@/lib/ai/systemPrompt";
@@ -260,7 +260,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Background: guardar y actualizar CRM
-      after(async () => {
+      (async () => {
         try {
           await supabase.from("mensajes_recibidos").insert({
             whatsapp: senderId, texto: igRespuesta, tipo: "bot", business_id: businessId,
@@ -513,7 +513,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Background: guardar y actualizar CRM
-      after(async () => {
+      (async () => {
         try {
           await supabase.from("mensajes_recibidos").insert({
             whatsapp: senderId, texto: fbRespuesta, tipo: "bot", business_id: businessId,
@@ -751,7 +751,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 8. TAREAS EN BACKGROUND — no bloquean la respuesta al usuario
-    after(async () => {
+    (async () => {
       try {
         // Guardar respuesta del bot
         await supabase.from("mensajes_recibidos").insert({
