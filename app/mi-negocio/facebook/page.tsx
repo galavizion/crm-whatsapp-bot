@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { CheckCircle2, Circle } from "lucide-react";
 import ConnectMetaPagesButton from "@/components/meta/ConnectMetaPagesButton";
+import DisconnectFacebookButton from "@/components/meta/DisconnectFacebookButton";
 
 export default async function FacebookPage() {
   const supabase = await createClient();
@@ -69,9 +70,15 @@ export default async function FacebookPage() {
 
         <div className="px-5 py-4">
           {fbAccount ? (
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <p className="text-xs text-slate-500">¿Quieres cambiar la página conectada?</p>
-              <ConnectMetaPagesButton businessId={businessId} platform="facebook" />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <p className="text-xs text-slate-500">¿Quieres cambiar la página conectada?</p>
+                <ConnectMetaPagesButton businessId={businessId} platform="facebook" />
+              </div>
+              <div className="flex items-center justify-between flex-wrap gap-3 pt-2 border-t border-slate-100">
+                <p className="text-xs text-slate-400">O desvincula tu página completamente.</p>
+                <DisconnectFacebookButton />
+              </div>
             </div>
           ) : (
             <ConnectMetaPagesButton businessId={businessId} platform="facebook" />
