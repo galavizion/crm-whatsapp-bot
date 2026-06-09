@@ -70,10 +70,21 @@ export default function ConnectMetaPagesButton({ businessId, platform = "both" }
     setStatus("idle");
     setMessage("");
 
-    window.FB.login(
-      (response: any) => { handleFBResponse(response); },
-      { scope: SCOPES[platform] }
-    );
+    // Cerrar sesión previa para evitar scopes cacheados de tokens anteriores
+    window.FB.getLoginStatus((statusResponse: any) => {
+      const doLogin = () => {
+        window.FB.login(
+          (response: any) => { handleFBResponse(response); },
+          { scope: SCOPES[platform], auth_type: "rerequest" }
+        );
+      };
+
+      if (statusResponse.status === "connected") {
+        window.FB.logout(() => doLogin());
+      } else {
+        doLogin();
+      }
+    });
   };
 
   const isFacebook = platform === "facebook";
