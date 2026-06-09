@@ -6,9 +6,9 @@ import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { onFBReady, initFBSDK } from "@/lib/fbSdk";
 
 const SCOPES = {
-  facebook: "public_profile,email,pages_show_list,pages_read_engagement,pages_manage_engagement,pages_messaging",
+  facebook: "public_profile,pages_show_list,pages_read_engagement,pages_manage_engagement,pages_messaging",
   instagram: "public_profile,instagram_basic,instagram_manage_messages",
-  both: "public_profile,email,pages_show_list,pages_read_engagement,pages_manage_engagement,pages_messaging,instagram_basic,instagram_manage_messages",
+  both: "public_profile,pages_show_list,pages_read_engagement,pages_manage_engagement,pages_messaging,instagram_basic,instagram_manage_messages",
 };
 
 interface Props {
