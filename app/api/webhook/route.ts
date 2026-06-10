@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
 
       const { data: saAccount } = await supabase
         .from("social_accounts")
-        .select("business_id, access_token, instagram_account_id")
+        .select("business_id, access_token, instagram_account_id, page_id")
         .eq("instagram_account_id", recipientId)
         .eq("platform", "instagram")
         .eq("is_active", true)
