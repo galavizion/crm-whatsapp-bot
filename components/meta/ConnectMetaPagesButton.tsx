@@ -119,7 +119,7 @@ export default function ConnectMetaPagesButton({ businessId, platform = "both" }
       const doLogin = () => {
         window.FB.login(
           (response: any) => { handleFBResponse(response); },
-          { scope: SCOPES[platform], auth_type: "reauthorize" }
+          { scope: SCOPES[platform] }
         );
       };
 

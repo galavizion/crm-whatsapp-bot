@@ -100,6 +100,11 @@ export async function POST(req: NextRequest) {
     }
     const longToken: string = ltData.access_token || accessToken;
 
+    // Debug: ver qué permisos tiene el token
+    const permsRes = await fetch(`${GRAPH}/me/permissions?access_token=${longToken}`);
+    const permsData = await permsRes.json();
+    console.log("🔑 Permisos del token:", JSON.stringify(permsData));
+
     const pagesRes = await fetch(`${GRAPH}/me/accounts?fields=id,name,picture&access_token=${longToken}`);
     const pagesData = await pagesRes.json();
     if (pagesData.error) {
