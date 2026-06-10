@@ -9,13 +9,10 @@ export async function sendInstagramCommentReply({
 }): Promise<{ ok: boolean; error?: unknown }> {
   try {
     const res = await fetch(
-      `https://graph.instagram.com/v23.0/${commentId}/replies`,
+      `https://graph.facebook.com/v23.0/${commentId}/replies?access_token=${accessToken}`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       }
     );
@@ -38,13 +35,10 @@ export async function sendInstagramPrivateReply({
 }): Promise<{ ok: boolean; error?: unknown }> {
   try {
     const res = await fetch(
-      `https://graph.instagram.com/v23.0/${commentId}/private_replies`,
+      `https://graph.facebook.com/v23.0/${commentId}/private_replies?access_token=${accessToken}`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       }
     );
