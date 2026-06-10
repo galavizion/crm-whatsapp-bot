@@ -250,7 +250,7 @@ export async function POST(req: NextRequest) {
       // Enviar inmediatamente
       const igResult = await sendInstagramMessage({
         accessToken,
-        pageId: saAccount.page_id,
+        instagramAccountId: saAccount.instagram_account_id,
         to: senderId,
         body: igRespuesta,
       });

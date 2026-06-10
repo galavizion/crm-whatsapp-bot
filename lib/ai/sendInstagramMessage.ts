@@ -1,24 +1,27 @@
 export async function sendInstagramMessage({
   accessToken,
-  pageId,
+  instagramAccountId,
   to,
   body,
 }: {
   accessToken: string;
-  pageId: string;
+  instagramAccountId: string;
   to: string;
   body: string;
 }) {
-  if (!accessToken || !pageId) {
-    return { ok: false, error: "Falta accessToken o pageId" };
+  if (!accessToken || !instagramAccountId) {
+    return { ok: false, error: "Falta accessToken o instagramAccountId" };
   }
 
   try {
     const res = await fetch(
-      `https://graph.facebook.com/v23.0/${pageId}/messages?access_token=${accessToken}`,
+      `https://graph.instagram.com/v23.0/me/messages`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           recipient: { id: to },
           message: { text: body },
