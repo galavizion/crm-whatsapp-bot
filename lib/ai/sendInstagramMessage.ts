@@ -15,16 +15,14 @@ export async function sendInstagramMessage({
 
   try {
     const res = await fetch(
-      `https://graph.instagram.com/v23.0/me/messages`,
+      `https://graph.facebook.com/v23.0/${instagramAccountId}/messages?access_token=${accessToken}`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           recipient: { id: to },
           message: { text: body },
+          messaging_type: "RESPONSE",
         }),
       }
     );
