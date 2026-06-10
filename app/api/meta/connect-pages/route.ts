@@ -109,8 +109,9 @@ export async function POST(req: NextRequest) {
     const pages: any[] = pagesData.data || [];
 
     if (pages.length === 0) {
+      console.error("❌ /me/accounts vacío. Raw:", JSON.stringify(pagesData));
       return NextResponse.json(
-        { error: "No se encontraron páginas de Facebook. Asegúrate de ser administrador de al menos una página." },
+        { error: `No se encontraron páginas. Raw: ${JSON.stringify(pagesData)}` },
         { status: 400 }
       );
     }
