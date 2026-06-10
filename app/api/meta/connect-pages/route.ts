@@ -109,9 +109,9 @@ export async function POST(req: NextRequest) {
     const pages: any[] = pagesData.data || [];
 
     if (pages.length === 0) {
-      console.error("❌ /me/accounts vacío. Raw:", JSON.stringify(pagesData));
+      console.error("❌ /me/accounts vacío:", JSON.stringify(pagesData));
       return NextResponse.json(
-        { error: `No se encontraron páginas. Raw: ${JSON.stringify(pagesData)}` },
+        { error: "Facebook no devolvió páginas. Ve a facebook.com/settings → Apps y sitios web → elimina Prospekto y vuelve a conectar." },
         { status: 400 }
       );
     }
