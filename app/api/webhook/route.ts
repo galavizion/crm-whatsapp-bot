@@ -158,6 +158,19 @@ export async function POST(req: NextRequest) {
         return new NextResponse("ok", { status: 200 });
       }
 
+      // Ignorar mensajes de otras cuentas Prospekto (previene loop entre cuentas)
+      const { data: senderIsOurAccount } = await supabase
+        .from("social_accounts")
+        .select("id")
+        .eq("instagram_account_id", senderId)
+        .eq("platform", "instagram")
+        .maybeSingle();
+
+      if (senderIsOurAccount) {
+        console.log("⏭️ Mensaje de cuenta Prospekto ignorado:", senderId);
+        return new NextResponse("ok", { status: 200 });
+      }
+
       console.log(`📸 Instagram DM | de: ${senderId} | para: ${recipientId}`);
 
       const { data: saAccount } = await supabase
