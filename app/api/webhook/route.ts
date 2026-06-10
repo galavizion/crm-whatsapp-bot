@@ -206,7 +206,7 @@ export async function POST(req: NextRequest) {
       let igProfileName: string | null = null;
       try {
         const igProfileRes = await fetch(
-          `https://graph.instagram.com/v23.0/${senderId}?fields=name,username&access_token=${accessToken}`
+          `https://graph.facebook.com/v23.0/${senderId}?fields=name,username&access_token=${accessToken}`
         );
         const igProfileData = await igProfileRes.json();
         console.log("📸 Instagram profile API response:", JSON.stringify(igProfileData));
@@ -250,7 +250,7 @@ export async function POST(req: NextRequest) {
       // Enviar inmediatamente
       const igResult = await sendInstagramMessage({
         accessToken,
-        instagramAccountId: saAccount.instagram_account_id,
+        instagramAccountId: saAccount.page_id,
         to: senderId,
         body: igRespuesta,
       });
