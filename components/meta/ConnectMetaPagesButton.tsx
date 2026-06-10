@@ -6,10 +6,16 @@ import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { onFBReady, initFBSDK } from "@/lib/fbSdk";
 
 const SCOPES = {
-  facebook: "public_profile,pages_show_list,pages_read_engagement,pages_manage_engagement,pages_messaging",
+  facebook: "public_profile,pages_show_list,pages_read_engagement,pages_messaging",
   instagram: "public_profile,instagram_basic,instagram_manage_messages",
-  both: "public_profile,pages_show_list,pages_read_engagement,pages_manage_engagement,pages_messaging,instagram_basic,instagram_manage_messages",
+  both: "public_profile,pages_show_list,pages_read_engagement,pages_messaging,instagram_basic,instagram_manage_messages",
 };
+
+interface FBPage {
+  id: string;
+  name: string;
+  picture: string | null;
+}
 
 interface Props {
   businessId: string;
@@ -22,6 +28,11 @@ export default function ConnectMetaPagesButton({ businessId, platform = "both" }
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+
+  // Selector de página
+  const [pages, setPages] = useState<FBPage[]>([]);
+  const [longLivedToken, setLongLivedToken] = useState("");
+  const [savingPageId, setSavingPageId] = useState<string | null>(null);
 
   useEffect(() => {
     onFBReady(() => setSdkReady(true));
@@ -40,19 +51,24 @@ export default function ConnectMetaPagesButton({ businessId, platform = "both" }
       const res = await fetch("/api/meta/connect-pages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          accessToken: response.authResponse.accessToken,
-          businessId,
-        }),
+        body: JSON.stringify({ accessToken: response.authResponse.accessToken, businessId }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al conectar");
 
+      // Múltiples páginas — mostrar selector
+      if (data.selectPage) {
+        setPages(data.pages);
+        setLongLivedToken(data.longLivedToken);
+        setLoading(false);
+        return;
+      }
+
+      // Una sola página — guardada automáticamente
       const parts: string[] = [];
       if (data.pagesConnected > 0) parts.push(`${data.pagesConnected} página(s) de Facebook`);
       if (data.instagramConnected > 0) parts.push(`${data.instagramConnected} cuenta(s) de Instagram`);
-
       setStatus("success");
       setMessage(parts.length > 0 ? `¡Conectado! ${parts.join(" y ")}` : "Conectado correctamente");
       router.refresh();
@@ -64,13 +80,41 @@ export default function ConnectMetaPagesButton({ businessId, platform = "both" }
     }
   };
 
+  const handleSelectPage = async (pageId: string) => {
+    setSavingPageId(pageId);
+    try {
+      const res = await fetch("/api/meta/connect-pages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selectedPageId: pageId, longLivedToken, businessId }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al guardar");
+
+      const parts: string[] = [];
+      if (data.pagesConnected > 0) parts.push(`${data.pagesConnected} página(s) de Facebook`);
+      if (data.instagramConnected > 0) parts.push(`${data.instagramConnected} cuenta(s) de Instagram`);
+      setStatus("success");
+      setMessage(parts.length > 0 ? `¡Conectado! ${parts.join(" y ")}` : "Conectado correctamente");
+      setPages([]);
+      setLongLivedToken("");
+      router.refresh();
+    } catch (err: any) {
+      setStatus("error");
+      setMessage(err.message || "Error inesperado");
+    } finally {
+      setSavingPageId(null);
+    }
+  };
+
   const handleConnect = () => {
     if (!sdkReady || loading) return;
     setLoading(true);
     setStatus("idle");
     setMessage("");
+    setPages([]);
 
-    // Cerrar sesión previa para evitar scopes cacheados de tokens anteriores
     window.FB.getLoginStatus((statusResponse: any) => {
       const doLogin = () => {
         window.FB.login(
@@ -104,7 +148,7 @@ export default function ConnectMetaPagesButton({ businessId, platform = "both" }
     <div className="space-y-3">
       <button
         onClick={handleConnect}
-        disabled={!sdkReady || loading}
+        disabled={!sdkReady || loading || pages.length > 0}
         className={`inline-flex items-center gap-2.5 px-5 py-2.5 ${btnColor} disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl transition shadow-sm`}
       >
         {loading ? (
@@ -120,6 +164,43 @@ export default function ConnectMetaPagesButton({ businessId, platform = "both" }
         )}
         {loading ? "Conectando..." : sdkReady ? btnLabel : "Cargando..."}
       </button>
+
+      {/* Selector de página cuando hay múltiples */}
+      {pages.length > 0 && (
+        <div className="border border-slate-200 rounded-xl overflow-hidden">
+          <div className="bg-slate-50 border-b border-slate-200 px-4 py-2.5">
+            <p className="text-xs font-semibold text-slate-700">
+              Elige la página de Facebook para este negocio
+            </p>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {pages.map((page) => (
+              <button
+                key={page.id}
+                onClick={() => handleSelectPage(page.id)}
+                disabled={savingPageId !== null}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition text-left disabled:opacity-50"
+              >
+                {page.picture ? (
+                  <img src={page.picture} alt={page.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                    </svg>
+                  </div>
+                )}
+                <span className="text-sm font-medium text-slate-800 flex-1">{page.name}</span>
+                {savingPageId === page.id ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-500 shrink-0" />
+                ) : (
+                  <span className="text-xs text-blue-600 font-semibold shrink-0">Seleccionar</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {status === "success" && (
         <div className="flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5">
