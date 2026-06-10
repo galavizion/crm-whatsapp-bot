@@ -15,7 +15,7 @@ export async function sendInstagramMessage({
 
   try {
     const res = await fetch(
-      `https://graph.facebook.com/v23.0/${instagramAccountId}/messages?access_token=${accessToken}`,
+      `https://graph.facebook.com/v23.0/me/messages?access_token=${accessToken}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
