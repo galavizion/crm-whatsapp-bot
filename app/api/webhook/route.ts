@@ -8,9 +8,9 @@ import { extractMemory } from "@/lib/ai/memory";
 import { sendWhatsAppText, sendWhatsAppTemplate } from "@/lib/ai/sendWhatsAppText";
 import { sendInstagramMessage } from "@/lib/ai/sendInstagramMessage";
 import { sendFacebookMessage } from "@/lib/ai/sendFacebookMessage";
+import { generateCommentReply } from "@/lib/ai/commentReply";
+import { sendInstagramCommentReply, sendInstagramPrivateReply } from "@/lib/ai/sendInstagramCommentReply";
 // TODO: habilitar cuando Meta apruebe pages_manage_engagement en App Review
-// import { generateCommentReply } from "@/lib/ai/commentReply";
-// import { sendInstagramCommentReply, sendInstagramPrivateReply } from "@/lib/ai/sendInstagramCommentReply";
 // import { sendFacebookCommentReply, sendFacebookPrivateReply } from "@/lib/ai/sendFacebookCommentReply";
 
 export const runtime = "nodejs";
@@ -55,81 +55,93 @@ export async function POST(req: NextRequest) {
       const messaging = body.entry?.[0]?.messaging?.[0];
       const change = body.entry?.[0]?.changes?.[0];
 
-      // ── Comentarios Instagram — deshabilitado hasta App Review de pages_manage_engagement ──
-      // if (change?.field === "comments") {
-      //   const commentId: string = change.value?.id || "";
-      //   const commentText: string = change.value?.text || "";
-      //   const igAccountId: string = body.entry?.[0]?.id || "";
-      //   const commentAuthorId: string = change.value?.from?.id || "";
-      //   const isTopLevelComment: boolean = !change.value?.parent_id;
-      //   if (commentAuthorId === igAccountId) {
-      //     console.log("⏭️ Comentario propio ignorado");
-      //     return new NextResponse("ok", { status: 200 });
-      //   }
-      //   if (!commentText || !commentId) {
-      //     return new NextResponse("ok", { status: 200 });
-      //   }
-      //   console.log(`💬 Instagram comentario | id: ${commentId} | texto: "${commentText}"`);
-      //   waitUntil((async () => {
-      //     try {
-      //       const { data: igCommentAccount } = await supabase
-      //         .from("social_accounts")
-      //         .select("business_id, access_token")
-      //         .eq("instagram_account_id", igAccountId)
-      //         .eq("platform", "instagram")
-      //         .eq("is_active", true)
-      //         .maybeSingle();
-      //       if (!igCommentAccount?.business_id) return;
-      //       const { data: igCommentBusiness } = await supabase
-      //         .from("businesses")
-      //         .select("name, servicios, tono_bot, status, catalogo")
-      //         .eq("id", igCommentAccount.business_id)
-      //         .maybeSingle();
-      //       if (igCommentBusiness?.status === "suspended" || igCommentBusiness?.status === "cancelled") return;
-      //       const { public_reply, open_dm, dm_message } = await generateCommentReply({
-      //         business: igCommentBusiness,
-      //         commentText,
-      //         platform: "instagram",
-      //       });
-      //       const pubResult = await sendInstagramCommentReply({
-      //         accessToken: igCommentAccount.access_token,
-      //         commentId,
-      //         message: public_reply,
-      //       });
-      //       if (!pubResult.ok) {
-      //         console.error("❌ Error respondiendo comentario Instagram:", JSON.stringify(pubResult.error));
-      //       } else {
-      //         console.log("✅ Respuesta pública al comentario enviada");
-      //       }
-      //       let igSentDm = false;
-      //       if (open_dm && dm_message && isTopLevelComment && commentId) {
-      //         const dmResult = await sendInstagramPrivateReply({
-      //           accessToken: igCommentAccount.access_token,
-      //           commentId,
-      //           message: dm_message,
-      //         });
-      //         if (!dmResult.ok) {
-      //           console.error("❌ Error enviando private reply Instagram:", JSON.stringify(dmResult.error));
-      //         } else {
-      //           console.log("✅ Instagram private reply enviado al autor del comentario");
-      //           igSentDm = true;
-      //         }
-      //       }
-      //       await supabase.from("social_comments").upsert({
-      //         business_id: igCommentAccount.business_id,
-      //         platform: "instagram",
-      //         comment_id: commentId,
-      //         author_id: commentAuthorId,
-      //         text: commentText,
-      //         bot_reply: public_reply,
-      //         sent_dm: igSentDm,
-      //       }, { onConflict: "comment_id", ignoreDuplicates: true });
-      //     } catch (e) {
-      //       console.error("❌ IG comment background error:", e);
-      //     }
-      //   })());
-      //   return new NextResponse("ok", { status: 200 });
-      // }
+      // ── Comentarios ──
+      if (change?.field === "comments") {
+        const commentId: string = change.value?.id || "";
+        const commentText: string = change.value?.text || "";
+        const igAccountId: string = body.entry?.[0]?.id || "";
+        const commentAuthorId: string = change.value?.from?.id || "";
+        const isTopLevelComment: boolean = !change.value?.parent_id;
+
+        if (commentAuthorId === igAccountId) {
+          console.log("⏭️ Comentario propio ignorado");
+          return new NextResponse("ok", { status: 200 });
+        }
+
+        if (!commentText || !commentId) {
+          return new NextResponse("ok", { status: 200 });
+        }
+
+        console.log(`💬 Instagram comentario | id: ${commentId} | texto: "${commentText}"`);
+
+        waitUntil((async () => {
+          try {
+            const { data: igCommentAccount } = await supabase
+              .from("social_accounts")
+              .select("business_id, access_token")
+              .eq("instagram_account_id", igAccountId)
+              .eq("platform", "instagram")
+              .eq("is_active", true)
+              .maybeSingle();
+
+            if (!igCommentAccount?.business_id) return;
+
+            const { data: igCommentBusiness } = await supabase
+              .from("businesses")
+              .select("name, servicios, tono_bot, status, catalogo")
+              .eq("id", igCommentAccount.business_id)
+              .maybeSingle();
+
+            if (igCommentBusiness?.status === "suspended" || igCommentBusiness?.status === "cancelled") return;
+
+            const { public_reply, open_dm, dm_message } = await generateCommentReply({
+              business: igCommentBusiness,
+              commentText,
+              platform: "instagram",
+            });
+
+            const pubResult = await sendInstagramCommentReply({
+              accessToken: igCommentAccount.access_token,
+              commentId,
+              message: public_reply,
+            });
+            if (!pubResult.ok) {
+              console.error("❌ Error respondiendo comentario Instagram:", JSON.stringify(pubResult.error));
+            } else {
+              console.log("✅ Respuesta pública al comentario enviada");
+            }
+
+            let igSentDm = false;
+            if (open_dm && dm_message && isTopLevelComment && commentId) {
+              const dmResult = await sendInstagramPrivateReply({
+                accessToken: igCommentAccount.access_token,
+                commentId,
+                message: dm_message,
+              });
+              if (!dmResult.ok) {
+                console.error("❌ Error enviando private reply Instagram:", JSON.stringify(dmResult.error));
+              } else {
+                console.log("✅ Instagram private reply enviado al autor del comentario");
+                igSentDm = true;
+              }
+            }
+
+            await supabase.from("social_comments").upsert({
+              business_id: igCommentAccount.business_id,
+              platform: "instagram",
+              comment_id: commentId,
+              author_id: commentAuthorId,
+              text: commentText,
+              bot_reply: public_reply,
+              sent_dm: igSentDm,
+            }, { onConflict: "comment_id", ignoreDuplicates: true });
+          } catch (e) {
+            console.error("❌ IG comment background error:", e);
+          }
+        })());
+
+        return new NextResponse("ok", { status: 200 });
+      }
 
       // ── DMs ──
       if (!messaging?.message || messaging.message.is_echo) {

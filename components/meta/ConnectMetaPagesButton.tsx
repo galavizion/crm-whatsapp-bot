@@ -7,8 +7,8 @@ import { onFBReady, initFBSDK } from "@/lib/fbSdk";
 
 const SCOPES = {
   facebook: "public_profile,pages_show_list,pages_read_engagement,pages_messaging",
-  instagram: "public_profile,instagram_basic,instagram_manage_messages",
-  both: "public_profile,pages_show_list,pages_read_engagement,pages_messaging,instagram_basic,instagram_manage_messages",
+  instagram: "public_profile,instagram_basic,instagram_manage_messages,instagram_manage_comments",
+  both: "public_profile,pages_show_list,pages_read_engagement,pages_messaging,instagram_basic,instagram_manage_messages,instagram_manage_comments",
 };
 
 interface FBPage {
