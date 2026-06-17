@@ -99,11 +99,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Error al canjear token: ${ltData.error.message}` }, { status: 400 });
     }
     const longToken: string = ltData.access_token || accessToken;
+    console.log("🔑 Token corto recibido:", accessToken?.slice(0, 20) + "...");
+    console.log("🔑 Token largo generado:", longToken?.slice(0, 20) + "...");
+    console.log("🔑 ¿Son iguales?", accessToken === longToken);
 
     // Debug: ver qué permisos tiene el token
     const permsRes = await fetch(`${GRAPH}/me/permissions?access_token=${longToken}`);
     const permsData = await permsRes.json();
     console.log("🔑 Permisos del token:", JSON.stringify(permsData));
+
+    const meRes = await fetch(`${GRAPH}/me?access_token=${longToken}`);
+    const meData = await meRes.json();
+    console.log("👤 /me response:", JSON.stringify(meData));
 
     const pagesRes = await fetch(`${GRAPH}/me/accounts?fields=id,name,picture&access_token=${longToken}`);
     const pagesData = await pagesRes.json();
