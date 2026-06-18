@@ -27,12 +27,30 @@ async function createNegocio(formData: FormData) {
     redirect("/god/negocios/nuevo?error=campos_requeridos");
   }
 
-  // 1. Crear negocio
-  const { data: business, error: bizError } = await supabase
-    .from("businesses")
-    .insert({ name, slug, is_active: true })
-    .select()
-    .maybeSingle();
+  // 1. Crear negocio — si el slug ya existe, agregar sufijo único
+  let finalSlug = slug;
+  let business = null;
+  let bizError = null;
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const trySlug = attempt === 0 ? slug : `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+    const result = await supabase
+      .from("businesses")
+      .insert({ name, slug: trySlug, is_active: true })
+      .select()
+      .maybeSingle();
+
+    if (!result.error) {
+      business = result.data;
+      finalSlug = trySlug;
+      break;
+    }
+
+    if (!result.error.message.includes("slug")) {
+      bizError = result.error;
+      break;
+    }
+  }
 
   if (bizError || !business) {
     const msg = encodeURIComponent(bizError?.message || "Error al crear negocio");
