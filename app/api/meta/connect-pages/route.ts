@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabaseUser.auth.getUser();
   if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-  const { accessToken, businessId, selectedPageId, longLivedToken } = await req.json();
+  const { accessToken, businessId, selectedPageId, longLivedToken, clientPages } = await req.json();
   if (!businessId) return NextResponse.json({ error: "Parámetros inválidos" }, { status: 400 });
 
   const admin = createAdminClient(
@@ -112,13 +112,21 @@ export async function POST(req: NextRequest) {
     const meData = await meRes.json();
     console.log("👤 /me response:", JSON.stringify(meData));
 
-    const pagesRes = await fetch(`${GRAPH}/me/accounts?fields=id,name,picture&access_token=${longToken}`);
-    const pagesData = await pagesRes.json();
-    if (pagesData.error) {
-      console.error("❌ /me/accounts error:", JSON.stringify(pagesData.error));
-      return NextResponse.json({ error: `Error al obtener páginas: ${pagesData.error.message}` }, { status: 400 });
+    // Usar páginas obtenidas client-side si están disponibles (Business Login no devuelve /me/accounts server-side)
+    let pages: any[] = [];
+    if (clientPages && clientPages.length > 0) {
+      console.log("📄 Usando páginas del cliente:", clientPages.length);
+      pages = clientPages;
+    } else {
+      const pagesRes = await fetch(`${GRAPH}/me/accounts?fields=id,name,access_token,picture&access_token=${longToken}`);
+      const pagesData = await pagesRes.json();
+      if (pagesData.error) {
+        console.error("❌ /me/accounts error:", JSON.stringify(pagesData.error));
+        return NextResponse.json({ error: `Error al obtener páginas: ${pagesData.error.message}` }, { status: 400 });
+      }
+      pages = pagesData.data || [];
+      console.log("📄 Páginas del servidor:", pages.length);
     }
-    const pages: any[] = pagesData.data || [];
 
     if (pages.length === 0) {
       console.error("❌ /me/accounts vacío:", JSON.stringify(pagesData));

@@ -48,10 +48,17 @@ export default function ConnectMetaPagesButton({ businessId, platform = "both" }
     }
 
     try {
+      // Obtener páginas client-side con FB SDK (evita problemas de Business Login server-side)
+      const clientPages = await new Promise<any[]>((resolve) => {
+        window.FB.api("/me/accounts", { fields: "id,name,access_token,picture" }, (data: any) => {
+          resolve(data?.data || []);
+        });
+      });
+
       const res = await fetch("/api/meta/connect-pages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accessToken: response.authResponse.accessToken, businessId }),
+        body: JSON.stringify({ accessToken: response.authResponse.accessToken, businessId, clientPages }),
       });
 
       const data = await res.json();
