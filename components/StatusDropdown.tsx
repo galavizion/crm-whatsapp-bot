@@ -4,11 +4,11 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 const ESTADOS = [
-  { key: "interesado", label: "Interesado", cls: "bg-blue-100 text-blue-800 border-blue-200" },
-  { key: "contactar",  label: "Llamar",     cls: "bg-amber-100 text-amber-800 border-amber-200" },
-  { key: "contactado", label: "Contactado", cls: "bg-violet-100 text-violet-800 border-violet-200" },
-  { key: "cliente",    label: "Cliente",    cls: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-  { key: "perdido",    label: "Perdido",    cls: "bg-rose-100 text-rose-800 border-rose-200" },
+  { key: "interesado", label: "Interested", cls: "bg-blue-100 text-blue-800 border-blue-200" },
+  { key: "contactar",  label: "Call",       cls: "bg-amber-100 text-amber-800 border-amber-200" },
+  { key: "contactado", label: "Contacted",  cls: "bg-violet-100 text-violet-800 border-violet-200" },
+  { key: "cliente",    label: "Client",     cls: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+  { key: "perdido",    label: "Lost",       cls: "bg-rose-100 text-rose-800 border-rose-200" },
 ];
 
 function getConfig(key: string) {
@@ -75,8 +75,8 @@ export default function StatusDropdown({ id, current }: { id: string; current: s
         </svg>
       </div>
       <span className="text-xs font-semibold">
-        {saved === "saving" && <span className="animate-pulse text-[#9c4f93]">Guardando…</span>}
-        {saved === "saved" && <span className="text-green-600">Guardado</span>}
+        {saved === "saving" && <span className="animate-pulse text-[#9c4f93]">Saving…</span>}
+        {saved === "saved" && <span className="text-green-600">Saved</span>}
         {saved === "error" && <span className="text-red-500">Error</span>}
       </span>
     </div>

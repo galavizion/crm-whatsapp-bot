@@ -34,7 +34,7 @@ export default function LoginPage() {
       router.push("/dashboard");
       router.refresh();
     } catch {
-      setErrorMessage("Ocurrió un error inesperado al iniciar sesión.");
+      setErrorMessage("An unexpected error occurred while signing in.");
       setLoading(false);
     }
   }
@@ -65,14 +65,14 @@ export default function LoginPage() {
             Prospekto
           </h1>
           <p className="mt-2 text-sm text-slate-600">
-            Accede a tu panel para revisar leads, conversaciones y seguimiento comercial.
+            Access your panel to review leads, conversations and sales follow-up.
           </p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700">
-              Correo
+              Email
             </label>
             <input
               type="email"
@@ -86,7 +86,7 @@ export default function LoginPage() {
 
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700">
-              Contraseña
+              Password
             </label>
             <input
               type="password"
@@ -109,7 +109,7 @@ export default function LoginPage() {
             disabled={loading}
             className="flex h-12 w-full items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] text-sm font-semibold text-white shadow-[0_12px_24px_rgba(200,79,146,0.28)] transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {loading ? "Entrando..." : "Entrar"}
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
       </div>

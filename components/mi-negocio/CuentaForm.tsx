@@ -21,11 +21,11 @@ export default function CuentaForm({ email }: { email: string }) {
     setSuccess(false);
 
     if (newPassword.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres.");
+      setError("Password must be at least 6 characters.");
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("Las contraseñas no coinciden.");
+      setError("Passwords do not match.");
       return;
     }
 
@@ -46,9 +46,9 @@ export default function CuentaForm({ email }: { email: string }) {
   return (
     <div className="space-y-4 pb-10">
       <div>
-        <h2 className="text-sm font-semibold text-slate-800">Mi cuenta</h2>
+        <h2 className="text-sm font-semibold text-slate-800">My account</h2>
         <p className="text-xs text-slate-500 mt-0.5">
-          Gestiona tu acceso y contraseña.
+          Manage your access and password.
         </p>
       </div>
 
@@ -56,14 +56,14 @@ export default function CuentaForm({ email }: { email: string }) {
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="bg-slate-50 border-b border-slate-100 px-5 py-3 flex items-center gap-2">
           <Mail className="w-4 h-4 text-slate-500" />
-          <span className="text-sm font-semibold text-slate-700">Correo electrónico</span>
+          <span className="text-sm font-semibold text-slate-700">Email address</span>
         </div>
         <div className="px-5 py-4">
           <p className="text-sm text-slate-800 font-mono bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
             {email}
           </p>
           <p className="text-xs text-slate-400 mt-1.5">
-            Para cambiar tu correo, contacta al administrador.
+            To change your email, contact the administrator.
           </p>
         </div>
       </div>
@@ -72,17 +72,17 @@ export default function CuentaForm({ email }: { email: string }) {
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="bg-slate-50 border-b border-slate-100 px-5 py-3 flex items-center gap-2">
           <KeyRound className="w-4 h-4 text-slate-500" />
-          <span className="text-sm font-semibold text-slate-700">Cambiar contraseña</span>
+          <span className="text-sm font-semibold text-slate-700">Change password</span>
         </div>
         <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-600">Nueva contraseña</label>
+            <label className="text-xs font-medium text-slate-600">New password</label>
             <div className="relative">
               <input
                 type={showNew ? "text" : "password"}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Minimum 6 characters"
                 minLength={6}
                 required
                 className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-violet-400"
@@ -98,13 +98,13 @@ export default function CuentaForm({ email }: { email: string }) {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-600">Confirmar contraseña</label>
+            <label className="text-xs font-medium text-slate-600">Confirm password</label>
             <div className="relative">
               <input
                 type={showConfirm ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Repite la nueva contraseña"
+                placeholder="Repeat the new password"
                 minLength={6}
                 required
                 className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-violet-400"
@@ -129,7 +129,7 @@ export default function CuentaForm({ email }: { email: string }) {
           {success && (
             <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-sm text-emerald-700">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
-              Contraseña actualizada correctamente.
+              Password updated successfully.
             </div>
           )}
 
@@ -138,7 +138,7 @@ export default function CuentaForm({ email }: { email: string }) {
             disabled={loading}
             className="w-full py-2.5 bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Guardando..." : "Actualizar contraseña"}
+            {loading ? "Saving..." : "Update password"}
           </button>
         </form>
       </div>

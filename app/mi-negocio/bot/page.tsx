@@ -32,7 +32,7 @@ async function saveConfig(formData: FormData) {
     descripcion: String(formData.get("descripcion") || "").trim() || null,
     servicios: String(formData.get("servicios") || "").trim() || null,
     instrucciones_bot: String(formData.get("instrucciones_bot") || "").trim() || null,
-    tono_bot: String(formData.get("tono_bot") || "profesional y amigable").trim(),
+    tono_bot: String(formData.get("tono_bot") || "professional and friendly").trim(),
   }).eq("id", businessId);
 
   revalidatePath("/mi-negocio/bot");
@@ -70,11 +70,11 @@ export default async function BotConfigPage({
   const b = business as Business;
 
   const TONOS = [
-    "profesional y amigable",
-    "formal y serio",
-    "casual y cercano",
-    "entusiasta y energético",
-    "empático y paciente",
+    "professional and friendly",
+    "formal and serious",
+    "casual and approachable",
+    "enthusiastic and energetic",
+    "empathetic and patient",
   ];
 
   return (
@@ -82,7 +82,7 @@ export default async function BotConfigPage({
       {saved && (
         <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-700 px-5 py-4 rounded-2xl shadow-sm">
           <CheckCircle2 className="w-5 h-5 shrink-0" />
-          <p className="text-sm font-semibold">¡Configuración guardada! El bot ya usa los nuevos datos.</p>
+          <p className="text-sm font-semibold">Configuration saved! The bot is now using the new data.</p>
         </div>
       )}
 
@@ -90,13 +90,13 @@ export default async function BotConfigPage({
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
         <h2 className="font-semibold text-slate-800 flex items-center gap-2 mb-1">
           <span className="text-slate-400"><ShoppingBag className="w-4 h-4" /></span>
-          Catálogo de productos
+          Product catalog
         </h2>
         <p className="text-xs text-slate-500 mb-4">
-          Sube tu catálogo en formato Excel (.xlsx) o CSV. El bot lo usará automáticamente para
-          responder preguntas sobre productos, precios y disponibilidad.{" "}
+          Upload your catalog in Excel (.xlsx) or CSV format. The bot will automatically use it to
+          answer questions about products, prices and availability.{" "}
           <a href="/prospekto_catalogo_template.xlsx" download className="text-purple-600 hover:underline font-medium">
-            Descargar template
+            Download template
           </a>
         </p>
         <UploadCatalogo businessId={b.id} updatedAt={b.catalogo_updated_at} totalProductos={b.catalogo?.length ?? null} />
@@ -106,8 +106,8 @@ export default async function BotConfigPage({
       <form action={saveConfig} className="space-y-5">
         <input type="hidden" name="businessId" value={b.id} />
 
-        <Section icon={<Sparkles className="w-4 h-4" />} title="Slogan del negocio">
-          <p className="text-xs text-slate-500 mb-3">Una frase corta que define tu negocio. El bot la usa para presentarse.</p>
+        <Section icon={<Sparkles className="w-4 h-4" />} title="Business slogan">
+          <p className="text-xs text-slate-500 mb-3">A short phrase that defines your business. The bot uses it to introduce itself.</p>
           <input
             name="slogan"
             defaultValue={b.slogan || ""}
@@ -116,8 +116,8 @@ export default async function BotConfigPage({
           />
         </Section>
 
-        <Section icon={<MessageSquare className="w-4 h-4" />} title="Descripción del negocio">
-          <p className="text-xs text-slate-500 mb-3">Explica a qué se dedica tu negocio.</p>
+        <Section icon={<MessageSquare className="w-4 h-4" />} title="Business description">
+          <p className="text-xs text-slate-500 mb-3">Explain what your business does.</p>
           <textarea
             name="descripcion"
             defaultValue={b.descripcion || ""}
@@ -127,9 +127,9 @@ export default async function BotConfigPage({
           />
         </Section>
 
-        <Section icon={<Package className="w-4 h-4" />} title="Servicios y productos">
+        <Section icon={<Package className="w-4 h-4" />} title="Services and products">
           <p className="text-xs text-slate-500 mb-3">
-            Descripción general de tus servicios. Si subiste un catálogo Excel, el bot combinará ambas fuentes.
+            General description of your services. If you uploaded an Excel catalog, the bot will combine both sources.
           </p>
           <textarea
             name="servicios"
@@ -140,20 +140,20 @@ export default async function BotConfigPage({
           />
         </Section>
 
-        <Section icon={<Settings className="w-4 h-4" />} title="Tono del bot">
-          <p className="text-xs text-slate-500 mb-3">Define cómo habla el bot con los clientes.</p>
+        <Section icon={<Settings className="w-4 h-4" />} title="Bot tone">
+          <p className="text-xs text-slate-500 mb-3">Define how the bot talks to clients.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {TONOS.map((tono) => (
               <label key={tono} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition has-checked:border-purple-400 has-checked:bg-purple-50">
-                <input type="radio" name="tono_bot" value={tono} defaultChecked={(b.tono_bot || "profesional y amigable") === tono} className="accent-purple-500" />
+                <input type="radio" name="tono_bot" value={tono} defaultChecked={(b.tono_bot || "professional and friendly") === tono} className="accent-purple-500" />
                 <span className="text-sm text-slate-700 capitalize">{tono}</span>
               </label>
             ))}
           </div>
         </Section>
 
-        <Section icon={<Bot className="w-4 h-4" />} title="Instrucciones especiales">
-          <p className="text-xs text-slate-500 mb-3">Reglas específicas para el bot.</p>
+        <Section icon={<Bot className="w-4 h-4" />} title="Special instructions">
+          <p className="text-xs text-slate-500 mb-3">Specific rules for the bot.</p>
           <textarea
             name="instrucciones_bot"
             defaultValue={b.instrucciones_bot || ""}
@@ -164,7 +164,7 @@ export default async function BotConfigPage({
         </Section>
 
         <button type="submit" className="w-full py-3 bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] hover:opacity-90 text-white font-semibold rounded-xl transition-opacity shadow-lg">
-          Guardar configuración
+          Save configuration
         </button>
       </form>
     </div>

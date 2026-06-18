@@ -13,7 +13,7 @@ export default function ExportLeadsButton({ estado }: { estado?: string }) {
       const res = await fetch(url);
 
       if (!res.ok) {
-        alert("No hay leads para exportar");
+        alert("No leads to export");
         return;
       }
 
@@ -24,7 +24,7 @@ export default function ExportLeadsButton({ estado }: { estado?: string }) {
       link.click();
       URL.revokeObjectURL(link.href);
     } catch {
-      alert("Error al exportar");
+      alert("Export error");
     } finally {
       setLoading(false);
     }
@@ -37,7 +37,7 @@ export default function ExportLeadsButton({ estado }: { estado?: string }) {
       className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-colors"
     >
       <Download className="w-4 h-4" />
-      {loading ? "Exportando..." : "Exportar CSV"}
+      {loading ? "Exporting..." : "Export CSV"}
     </button>
   );
 }

@@ -29,13 +29,13 @@ function IGIcon() {
 }
 
 const TABS = [
-  { href: "/mi-negocio/bot",       label: "Mi Bot",    icon: <Bot className="w-4 h-4" /> },
+  { href: "/mi-negocio/bot",       label: "My Bot",    icon: <Bot className="w-4 h-4" /> },
   { href: "/mi-negocio/whatsapp",  label: "WhatsApp",  icon: <WAIcon /> },
   { href: "/mi-negocio/facebook",  label: "Facebook",  icon: <FBIcon /> },
   { href: "/mi-negocio/instagram", label: "Instagram", icon: <IGIcon /> },
   { href: "/mi-negocio/web",       label: "Web",       icon: <Globe className="w-4 h-4" /> },
-  { href: "/mi-negocio/equipo",    label: "Equipo",    icon: <Users className="w-4 h-4" /> },
-  { href: "/mi-negocio/cuenta",    label: "Cuenta",    icon: <UserCircle className="w-4 h-4" /> },
+  { href: "/mi-negocio/equipo",    label: "Team",      icon: <Users className="w-4 h-4" /> },
+  { href: "/mi-negocio/cuenta",    label: "Account",   icon: <UserCircle className="w-4 h-4" /> },
 ];
 
 export default function TabsNav() {

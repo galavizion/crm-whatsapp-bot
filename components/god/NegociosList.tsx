@@ -22,10 +22,10 @@ type NegocioItem = {
 
 function StatusBadge({ status }: { status: string | null }) {
   if (status === "active" || !status)
-    return <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">● Activo</span>;
+    return <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">● Active</span>;
   if (status === "suspended")
-    return <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">⏸ Suspendido</span>;
-  return <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">✕ Cancelado</span>;
+    return <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">⏸ Suspended</span>;
+  return <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">✕ Cancelled</span>;
 }
 
 function formatDate(d: string | null) {
@@ -43,7 +43,7 @@ function ActivateButton({ businessId }: { businessId: string }) {
       className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl border border-emerald-200 transition disabled:opacity-50"
     >
       <Play className="w-3.5 h-3.5" />
-      {isPending ? "Activando..." : "Activar"}
+      {isPending ? "Activating..." : "Activate"}
     </button>
   );
 }
@@ -55,7 +55,7 @@ export default function NegociosList({ negocios }: { negocios: NegocioItem[] }) 
   if (negocios.length === 0) {
     return (
       <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center text-slate-400">
-        No hay negocios aún. Crea el primero.
+        No businesses yet. Create the first one.
       </div>
     );
   }
@@ -74,13 +74,13 @@ export default function NegociosList({ negocios }: { negocios: NegocioItem[] }) 
               {/* Info principal */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <h2 className="font-semibold text-slate-800">{b.name || "Sin nombre"}</h2>
+                  <h2 className="font-semibold text-slate-800">{b.name || "No name"}</h2>
                   <StatusBadge status={b.status} />
                 </div>
 
                 {b.status === "suspended" && b.suspended_reason && (
                   <p className="text-xs text-amber-600 mb-1.5">
-                    Razón: {b.suspended_reason}
+                    Reason: {b.suspended_reason}
                     {b.suspended_at && ` · ${formatDate(b.suspended_at)}`}
                   </p>
                 )}
@@ -107,7 +107,7 @@ export default function NegociosList({ negocios }: { negocios: NegocioItem[] }) 
                   className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition"
                 >
                   <Edit className="w-3.5 h-3.5" />
-                  Gestionar
+                  Manage
                 </Link>
 
                 <Link
@@ -115,7 +115,7 @@ export default function NegociosList({ negocios }: { negocios: NegocioItem[] }) 
                   className="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl border border-indigo-200 transition"
                 >
                   <Edit className="w-3.5 h-3.5" />
-                  Editar
+                  Edit
                 </Link>
 
                 {(b.status === "active" || !b.status) ? (
@@ -124,7 +124,7 @@ export default function NegociosList({ negocios }: { negocios: NegocioItem[] }) 
                     className="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold rounded-xl border border-amber-200 transition"
                   >
                     <Pause className="w-3.5 h-3.5" />
-                    Suspender
+                    Suspend
                   </button>
                 ) : (
                   <ActivateButton businessId={b.id} />
@@ -135,7 +135,7 @@ export default function NegociosList({ negocios }: { negocios: NegocioItem[] }) 
                   className="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-xl border border-rose-200 transition"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  Eliminar
+                  Delete
                 </button>
               </div>
             </div>

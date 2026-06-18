@@ -56,6 +56,8 @@ export async function deleteBusiness(businessId: string) {
   const supabase = adminClient();
 
   // Eliminar en orden para respetar foreign keys
+  await supabase.from("social_comments").delete().eq("business_id", businessId);
+  await supabase.from("social_accounts").delete().eq("business_id", businessId);
   await supabase.from("contactos").delete().eq("business_id", businessId);
   await supabase.from("mensajes_recibidos").delete().eq("business_id", businessId);
   await supabase.from("business_users").delete().eq("business_id", businessId);

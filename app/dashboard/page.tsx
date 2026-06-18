@@ -35,35 +35,35 @@ type Profile = {
 const STATUS_CONFIG = [
   {
     key: "interesado",
-    label: "Interesados",
+    label: "Interested",
     icon: MessageSquare,
     color:
       "border-blue-200 bg-blue-50 text-blue-800 hover:border-blue-300 hover:bg-blue-100",
   },
   {
     key: "contactar",
-    label: "Contactar",
+    label: "Call",
     icon: PhoneCall,
     color:
       "border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-300 hover:bg-amber-100",
   },
   {
     key: "contactado",
-    label: "Contactados",
+    label: "Contacted",
     icon: Users,
     color:
       "border-violet-200 bg-violet-50 text-violet-800 hover:border-violet-300 hover:bg-violet-100",
   },
   {
     key: "cliente",
-    label: "Clientes",
+    label: "Clients",
     icon: BadgeCheck,
     color:
       "border-emerald-200 bg-emerald-50 text-emerald-800 hover:border-emerald-300 hover:bg-emerald-100",
   },
   {
     key: "perdido",
-    label: "Perdidos",
+    label: "Lost",
     icon: XCircle,
     color:
       "border-rose-200 bg-rose-50 text-rose-800 hover:border-rose-300 hover:bg-rose-100",
@@ -75,14 +75,14 @@ function getStatusCount(contactos: Contacto[], status: string) {
 }
 
 function formatDate(dateString: string | null) {
-  if (!dateString) return "Sin fecha";
+  if (!dateString) return "No date";
   try {
-    return new Intl.DateTimeFormat("es-MX", {
+    return new Intl.DateTimeFormat("en-US", {
       dateStyle: "medium",
       timeStyle: "short",
     }).format(new Date(dateString));
   } catch {
-    return "Sin fecha";
+    return "No date";
   }
 }
 
@@ -91,11 +91,11 @@ function relativeDate(dateString: string | null) {
   try {
     const d = new Date(dateString);
     const diff = Math.floor((Date.now() - d.getTime()) / 1000);
-    if (diff < 60) return "ahora";
+    if (diff < 60) return "now";
     if (diff < 3600) return `${Math.floor(diff / 60)}m`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
     if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
-    return new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short" }).format(d);
+    return new Intl.DateTimeFormat("en-US", { day: "numeric", month: "short" }).format(d);
   } catch {
     return "—";
   }
@@ -125,13 +125,13 @@ function getBadgeClasses(estado: string | null) {
 
 function getEstadoLabel(estado: string | null) {
   const map: Record<string, string> = {
-    interesado: "Interesado",
-    contactar: "Llamar",
-    contactado: "Contactado",
-    cliente: "Cliente",
-    perdido: "Perdido",
+    interesado: "Interested",
+    contactar: "Call",
+    contactado: "Contacted",
+    cliente: "Client",
+    perdido: "Lost",
   };
-  return map[(estado || "").toLowerCase()] || estado || "Sin estado";
+  return map[(estado || "").toLowerCase()] || estado || "No status";
 }
 
 const GOD_EMAIL = "rene.galaviz@gmail.com";
@@ -203,7 +203,7 @@ export default async function DashboardPage() {
       return (
         <div className="p-6">
           <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
-            Error cargando dashboard: {contactosError.message}
+            Error loading dashboard: {contactosError.message}
           </div>
         </div>
       );
@@ -223,19 +223,19 @@ export default async function DashboardPage() {
         <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-neutral-900">
-              {!isGod && businessName ? businessName : isGod ? "Dashboard global" : isAdmin ? "Dashboard de leads" : "Mis leads"}
+              {!isGod && businessName ? businessName : isGod ? "Global Dashboard" : isAdmin ? "Leads Dashboard" : "My Leads"}
             </h1>
 
             <p className="text-sm font-medium text-neutral-500">
-              {isGod ? "Vista God" : isAdmin ? "Vista administrador" : "Vista vendedor"}
+              {isGod ? "God View" : isAdmin ? "Admin View" : "Seller View"}
             </p>
 
             <p className="mt-1 text-sm text-neutral-600">
               {isGod
-                ? "Todos los leads de todos los negocios."
+                ? "All leads from all businesses."
                 : isAdmin
-                ? "Resumen general del CRM y acceso rápido por estado."
-                : "Aquí ves únicamente tus leads y tus pendientes."}
+                ? "General CRM overview and quick access by status."
+                : "Here you see only your leads and your pending tasks."}
             </p>
 
           </div>
@@ -248,7 +248,7 @@ export default async function DashboardPage() {
               href="/leads"
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm transition hover:bg-neutral-100"
             >
-              Ver lista
+              View list
               <ArrowUpRight className="h-4 w-4" />
             </Link>
           </div>
@@ -257,7 +257,7 @@ export default async function DashboardPage() {
         <div className="mb-6">
           <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-neutral-500">
-              {isGod ? "Total global" : isAdmin ? "Total de leads" : "Mis leads totales"}
+              {isGod ? "Global total" : isAdmin ? "Total leads" : "My total leads"}
             </p>
 
             <div className="mt-2 flex items-end gap-3">
@@ -266,7 +266,7 @@ export default async function DashboardPage() {
               </span>
 
               <span className="pb-1 text-sm text-neutral-500">
-                {isGod ? "en todos los negocios" : isAdmin ? "en todo el sistema" : "asignados a ti"}
+                {isGod ? "across all businesses" : isAdmin ? "across the system" : "assigned to you"}
               </span>
             </div>
           </div>
@@ -275,11 +275,11 @@ export default async function DashboardPage() {
         <section className="mb-8">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-neutral-900">
-              {isAdmin ? "Leads por estado" : "Mis leads por estado"}
+              {isAdmin ? "Leads by status" : "My leads by status"}
             </h2>
 
             <p className="text-sm text-neutral-500">
-              Da clic en una tarjeta para abrir la lista filtrada
+              Click a card to open the filtered list
             </p>
           </div>
 
@@ -311,21 +311,21 @@ export default async function DashboardPage() {
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-neutral-900">
-              {isAdmin ? "Leads recientes" : "Mis leads recientes"}
+              {isAdmin ? "Recent leads" : "My recent leads"}
             </h2>
 
             <Link
               href="/leads"
               className="text-sm font-medium text-neutral-600 transition hover:text-neutral-900"
             >
-              Ver todos
+              View all
             </Link>
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
             {recientes.length === 0 ? (
               <div className="p-6 text-sm text-neutral-500">
-                No hay leads para mostrar.
+                No leads to show.
               </div>
             ) : (
               <div className="divide-y divide-neutral-100">
@@ -344,7 +344,7 @@ export default async function DashboardPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-semibold text-neutral-900">
-                          {lead.nombre || "Sin nombre"}
+                          {lead.nombre || "No name"}
                         </span>
                         <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${getBadgeClasses(lead.estado)}`}>
                           {getEstadoLabel(lead.estado)}

@@ -6,28 +6,28 @@ import { CheckCircle2, AlertCircle, Upload, RefreshCw } from "lucide-react";
 import Image from "next/image";
 
 const DIAS = [
-  { key: "monday", label: "Lunes" },
-  { key: "tuesday", label: "Martes" },
-  { key: "wednesday", label: "Miércoles" },
-  { key: "thursday", label: "Jueves" },
-  { key: "friday", label: "Viernes" },
-  { key: "saturday", label: "Sábado" },
-  { key: "sunday", label: "Domingo" },
+  { key: "monday", label: "Monday" },
+  { key: "tuesday", label: "Tuesday" },
+  { key: "wednesday", label: "Wednesday" },
+  { key: "thursday", label: "Thursday" },
+  { key: "friday", label: "Friday" },
+  { key: "saturday", label: "Saturday" },
+  { key: "sunday", label: "Sunday" },
 ];
 
 const CATEGORIAS = [
-  { value: "HEALTH", label: "Salud" },
-  { value: "EDUCATION", label: "Educación" },
-  { value: "AUTOMOTIVE", label: "Automotriz" },
-  { value: "PROFESSIONAL_SERVICES", label: "Servicios Profesionales" },
-  { value: "BEAUTY_SPA_SALON", label: "Belleza y Spa" },
-  { value: "CLOTHING_APPAREL", label: "Ropa y Moda" },
-  { value: "FOOD_GROCERY", label: "Alimentos" },
-  { value: "RESTAURANT", label: "Restaurante" },
-  { value: "HOTEL_LODGING", label: "Hospedaje" },
-  { value: "FINANCE_BANKING", label: "Finanzas" },
-  { value: "SHOPPING_RETAIL", label: "Comercio" },
-  { value: "OTHER", label: "Otro" },
+  { value: "HEALTH", label: "Health" },
+  { value: "EDUCATION", label: "Education" },
+  { value: "AUTOMOTIVE", label: "Automotive" },
+  { value: "PROFESSIONAL_SERVICES", label: "Professional Services" },
+  { value: "BEAUTY_SPA_SALON", label: "Beauty & Spa" },
+  { value: "CLOTHING_APPAREL", label: "Clothing & Fashion" },
+  { value: "FOOD_GROCERY", label: "Food & Grocery" },
+  { value: "RESTAURANT", label: "Restaurant" },
+  { value: "HOTEL_LODGING", label: "Hotel & Lodging" },
+  { value: "FINANCE_BANKING", label: "Finance & Banking" },
+  { value: "SHOPPING_RETAIL", label: "Shopping & Retail" },
+  { value: "OTHER", label: "Other" },
 ];
 
 type DayHours = { enabled: boolean; open: string; close: string };
@@ -105,9 +105,9 @@ export default function PerfilForm({ businessId, isGod, initial }: Props) {
           whatsapp_hours: hours,
           ...(photo ? { whatsapp_profile_photo: photo } : {}),
         });
-        showToast("success", "Datos guardados correctamente");
+        showToast("success", "Data saved successfully");
       } catch {
-        showToast("error", "Error al guardar. Intenta de nuevo.");
+        showToast("error", "Error saving. Please try again.");
       }
     });
   }
@@ -115,11 +115,11 @@ export default function PerfilForm({ businessId, isGod, initial }: Props) {
   function handleUpdateMeta() {
     startUpdate(async () => {
       try {
-        showToast("success", "Actualizando perfil en WhatsApp...");
+        showToast("success", "Updating profile on WhatsApp...");
         await updateWhatsAppProfileAction(businessId);
-        showToast("success", "Perfil actualizado exitosamente en WhatsApp");
+        showToast("success", "Profile successfully updated on WhatsApp");
       } catch (e: unknown) {
-        showToast("error", e instanceof Error ? e.message : "Error al actualizar en Meta");
+        showToast("error", e instanceof Error ? e.message : "Error updating on Meta");
       }
     });
   }
@@ -144,7 +144,7 @@ export default function PerfilForm({ businessId, isGod, initial }: Props) {
 
       {/* FOTO */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-        <h2 className="font-semibold text-slate-800 mb-4">Foto de perfil</h2>
+        <h2 className="font-semibold text-slate-800 mb-4">Profile photo</h2>
         <div className="flex items-center gap-5">
           <div className="w-20 h-20 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0">
             {photo
@@ -159,9 +159,9 @@ export default function PerfilForm({ businessId, isGod, initial }: Props) {
               className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition"
             >
               <Upload className="w-4 h-4" />
-              {photo ? "Cambiar foto" : "Subir foto"}
+              {photo ? "Change photo" : "Upload photo"}
             </button>
-            <p className="text-xs text-slate-400 mt-1.5">Recomendado: 640×640px · JPG o PNG</p>
+            <p className="text-xs text-slate-400 mt-1.5">Recommended: 640×640px · JPG or PNG</p>
             <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
           </div>
         </div>
@@ -169,10 +169,10 @@ export default function PerfilForm({ businessId, isGod, initial }: Props) {
 
       {/* INFO BÁSICA */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
-        <h2 className="font-semibold text-slate-800">Información básica</h2>
+        <h2 className="font-semibold text-slate-800">Basic information</h2>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">Categoría</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Category</label>
           <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass}>
             {CATEGORIAS.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
@@ -182,7 +182,7 @@ export default function PerfilForm({ businessId, isGod, initial }: Props) {
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="block text-sm font-medium text-slate-700">Descripción</label>
+            <label className="block text-sm font-medium text-slate-700">Description</label>
             <span className={`text-xs ${description.length > 240 ? "text-rose-500" : "text-slate-400"}`}>
               {description.length}/256
             </span>
@@ -191,7 +191,7 @@ export default function PerfilForm({ businessId, isGod, initial }: Props) {
             value={description}
             onChange={(e) => setDescription(e.target.value.slice(0, 256))}
             rows={3}
-            placeholder="Breve descripción de tu negocio que verán tus clientes en WhatsApp"
+            placeholder="Brief description of your business that your clients will see on WhatsApp"
             className={`${inputClass} resize-none`}
           />
         </div>
@@ -199,25 +199,25 @@ export default function PerfilForm({ businessId, isGod, initial }: Props) {
 
       {/* CONTACTO */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
-        <h2 className="font-semibold text-slate-800">Datos de contacto</h2>
+        <h2 className="font-semibold text-slate-800">Contact information</h2>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Email address</label>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contacto@minegocio.com" className={inputClass} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">Sitio web</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Website</label>
           <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://minegocio.com" className={inputClass} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">Dirección</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Address</label>
           <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} placeholder="Calle, Ciudad, Estado, CP" className={`${inputClass} resize-none`} />
         </div>
       </div>
 
       {/* HORARIOS */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-        <h2 className="font-semibold text-slate-800 mb-4">Horarios de atención</h2>
+        <h2 className="font-semibold text-slate-800 mb-4">Business hours</h2>
         <div className="space-y-2">
           {DIAS.map(({ key, label }) => (
             <div key={key} className={`flex items-center gap-3 p-3 rounded-xl border transition ${hours[key].enabled ? "border-purple-200 bg-purple-50" : "border-slate-100 bg-slate-50"}`}>
@@ -238,7 +238,7 @@ export default function PerfilForm({ businessId, isGod, initial }: Props) {
                     onChange={(e) => setDayTime(key, "open", e.target.value)}
                     className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white"
                   />
-                  <span className="text-xs text-slate-400">a</span>
+                  <span className="text-xs text-slate-400">to</span>
                   <input
                     type="time"
                     value={hours[key].close}
@@ -247,7 +247,7 @@ export default function PerfilForm({ businessId, isGod, initial }: Props) {
                   />
                 </div>
               ) : (
-                <span className="text-xs text-slate-400">Cerrado</span>
+                <span className="text-xs text-slate-400">Closed</span>
               )}
             </div>
           ))}
@@ -262,7 +262,7 @@ export default function PerfilForm({ businessId, isGod, initial }: Props) {
           disabled={isSaving}
           className="flex-1 py-3 bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] hover:opacity-90 disabled:opacity-60 text-white font-semibold rounded-xl transition shadow-lg text-sm"
         >
-          {isSaving ? "Guardando..." : "Guardar"}
+          {isSaving ? "Saving..." : "Save"}
         </button>
 
         {isGod && (
@@ -273,7 +273,7 @@ export default function PerfilForm({ businessId, isGod, initial }: Props) {
             className="flex-1 py-3 bg-slate-800 hover:bg-slate-900 disabled:opacity-60 text-white font-semibold rounded-xl transition shadow-lg text-sm flex items-center justify-center gap-2"
           >
             <RefreshCw className={`w-4 h-4 ${isUpdating ? "animate-spin" : ""}`} />
-            {isUpdating ? "Actualizando..." : "Actualizar en WhatsApp"}
+            {isUpdating ? "Updating..." : "Update on WhatsApp"}
           </button>
         )}
       </div>

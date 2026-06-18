@@ -119,7 +119,7 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
 
         <Link href="/god/negocios" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition font-medium">
           <ArrowLeft className="w-4 h-4" />
-          Volver a negocios
+          Back to businesses
         </Link>
 
         {/* HEADER */}
@@ -138,14 +138,14 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
               <input type="hidden" name="id" value={business.id} />
               <input type="hidden" name="is_active" value={String(business.is_active)} />
               <button type="submit" className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition ${business.is_active ? "bg-rose-500 hover:bg-rose-600 text-white" : "bg-emerald-500 hover:bg-emerald-600 text-white"}`}>
-                {business.is_active ? <><XCircle className="w-4 h-4" /> Desactivar</> : <><CheckCircle className="w-4 h-4" /> Activar</>}
+                {business.is_active ? <><XCircle className="w-4 h-4" /> Deactivate</> : <><CheckCircle className="w-4 h-4" /> Activate</>}
               </button>
             </form>
           </div>
           <div className="flex gap-6 mt-4 pt-4 border-t border-white/10 text-sm text-white/70">
             <span>{leadsCount} leads</span>
-            <span>{users?.length || 0} usuarios</span>
-            <span>{waAccounts?.length || 0} números WhatsApp</span>
+            <span>{users?.length || 0} users</span>
+            <span>{waAccounts?.length || 0} WhatsApp numbers</span>
           </div>
         </div>
 
@@ -153,26 +153,26 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <h2 className="font-semibold text-slate-800 flex items-center gap-2 mb-4">
             <Users className="w-4 h-4 text-slate-400" />
-            Usuarios del negocio
+            Business users
           </h2>
 
           <div className="space-y-3 mb-5">
             {!users || users.length === 0 ? (
-              <p className="text-sm text-slate-400">Sin usuarios aún.</p>
+              <p className="text-sm text-slate-400">No users yet.</p>
             ) : (
               users.map((u: any) => (
                 <div key={u.id} className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-2">
                   {/* Fila superior: info + borrar */}
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-medium text-slate-800">{u.email || "Sin email"}</p>
+                      <p className="text-sm font-medium text-slate-800">{u.email || "No email"}</p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${u.role === "admin" ? "bg-indigo-100 text-indigo-700" : "bg-slate-200 text-slate-600"}`}>
                           {u.role}
                         </span>
                         {u.whatsapp
                           ? <span className="text-xs text-emerald-600 font-medium">📱 {u.whatsapp}</span>
-                          : <span className="text-xs text-slate-400">Sin WhatsApp</span>
+                          : <span className="text-xs text-slate-400">No WhatsApp</span>
                         }
                       </div>
                     </div>
@@ -196,7 +196,7 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
                       className="flex-1 text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder:text-slate-400 bg-white"
                     />
                     <button type="submit" className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition whitespace-nowrap">
-                      Guardar
+                      Save
                     </button>
                   </form>
                 </div>
@@ -207,10 +207,10 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
           {/* Agregar usuario */}
           <form action={addSeller} className="border-t border-slate-100 pt-4 space-y-3">
             <input type="hidden" name="businessId" value={id} />
-            <p className="text-sm font-medium text-slate-700">Agregar usuario</p>
+            <p className="text-sm font-medium text-slate-700">Add user</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input name="email" type="email" required placeholder="email@negocio.com" className="text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder:text-slate-400" />
-              <input name="password" type="text" required placeholder="Contraseña temporal" className="text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder:text-slate-400" />
+              <input name="password" type="text" required placeholder="Temporary password" className="text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder:text-slate-400" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <select name="role" className="text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-300">
@@ -221,7 +221,7 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
             </div>
             <button type="submit" className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition">
               <Plus className="w-4 h-4" />
-              Agregar usuario
+              Add user
             </button>
           </form>
         </div>
@@ -230,10 +230,10 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <h2 className="font-semibold text-slate-800 flex items-center gap-2 mb-4">
             <Phone className="w-4 h-4 text-slate-400" />
-            Números de WhatsApp
+            WhatsApp Numbers
           </h2>
           {!waAccounts || waAccounts.length === 0 ? (
-            <p className="text-sm text-slate-400 mb-4">Sin números configurados.</p>
+            <p className="text-sm text-slate-400 mb-4">No numbers configured.</p>
           ) : (
             <div className="space-y-2 mb-4">
               {waAccounts.map((wa: any) => (
@@ -241,7 +241,7 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
                   <p className="text-sm font-medium text-slate-800">+{wa.display_phone}</p>
                   <p className="text-xs text-slate-400 mt-0.5">ID: {wa.phone_number_id}</p>
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full mt-1 inline-block ${wa.is_active ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
-                    {wa.is_active ? "Activo" : "Inactivo"}
+                    {wa.is_active ? "Active" : "Inactive"}
                   </span>
                 </div>
               ))}

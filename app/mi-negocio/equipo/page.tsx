@@ -145,13 +145,13 @@ export default async function EquipoPage({
   const businessId = businessUser.business_id;
 
   const ERROR_MESSAGES: Record<string, string> = {
-    no_session: "Tu sesión expiró. Vuelve a iniciar sesión.",
-    sin_permiso: "No tienes permiso para agregar vendedores.",
-    campos_requeridos: "El correo y la contraseña son obligatorios.",
-    password_corta: "La contraseña debe tener al menos 6 caracteres.",
-    limite_alcanzado: `Alcanzaste el límite de ${MAX_SELLERS} vendedores.`,
-    usuario_no_encontrado: "No se pudo encontrar o crear el usuario.",
-    sin_user_id: "Error interno al crear el usuario. Intenta de nuevo.",
+    no_session: "Your session expired. Please sign in again.",
+    sin_permiso: "You don't have permission to add sellers.",
+    campos_requeridos: "Email and password are required.",
+    password_corta: "Password must be at least 6 characters.",
+    limite_alcanzado: `You reached the limit of ${MAX_SELLERS} sellers.`,
+    usuario_no_encontrado: "Could not find or create the user.",
+    sin_user_id: "Internal error creating the user. Please try again.",
   };
   const errorMsg = error ? (ERROR_MESSAGES[error] ?? decodeURIComponent(error)) : null;
 
@@ -175,7 +175,7 @@ export default async function EquipoPage({
 
       {ok && (
         <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-5 py-3 text-sm font-medium text-emerald-700">
-          ✓ Vendedor agregado correctamente. Ya puede iniciar sesión.
+          ✓ Seller added successfully. They can now sign in.
         </div>
       )}
       {errorMsg && (
@@ -187,9 +187,9 @@ export default async function EquipoPage({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-semibold text-slate-800 text-sm">Vendedores</h2>
+          <h2 className="font-semibold text-slate-800 text-sm">Sellers</h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            {sellerList.length} de {MAX_SELLERS} vendedores agregados
+            {sellerList.length} of {MAX_SELLERS} sellers added
           </p>
         </div>
         <div className="flex gap-1">
@@ -206,8 +206,8 @@ export default async function EquipoPage({
       {sellerList.length === 0 ? (
         <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-8 text-center">
           <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-          <p className="text-sm font-medium text-slate-500">Sin vendedores aún</p>
-          <p className="text-xs text-slate-400 mt-1">Agrega hasta {MAX_SELLERS} vendedores para tu equipo</p>
+          <p className="text-sm font-medium text-slate-500">No sellers yet</p>
+          <p className="text-xs text-slate-400 mt-1">Add up to {MAX_SELLERS} sellers for your team</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -235,7 +235,7 @@ export default async function EquipoPage({
                 <button
                   type="submit"
                   className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
-                  title="Eliminar vendedor"
+                  title="Delete seller"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -250,12 +250,12 @@ export default async function EquipoPage({
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
             <UserPlus className="w-4 h-4 text-violet-600" />
-            <h3 className="text-sm font-semibold text-slate-800">Agregar vendedor</h3>
+            <h3 className="text-sm font-semibold text-slate-800">Add seller</h3>
           </div>
           <form action={addSeller} className="px-5 py-4 space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
-                Correo electrónico <span className="text-rose-400">*</span>
+                Email address <span className="text-rose-400">*</span>
               </label>
               <input
                 name="email"
@@ -267,20 +267,20 @@ export default async function EquipoPage({
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
-                Contraseña temporal <span className="text-rose-400">*</span>
+                Temporary password <span className="text-rose-400">*</span>
               </label>
               <input
                 name="password"
                 type="text"
                 required
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Minimum 6 characters"
                 className="w-full text-sm border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-300 placeholder:text-slate-400 bg-white"
               />
-              <p className="text-xs text-slate-400 mt-1">El vendedor puede cambiarla después desde su perfil.</p>
+              <p className="text-xs text-slate-400 mt-1">The seller can change it later from their profile.</p>
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
-                WhatsApp (opcional)
+                WhatsApp (optional)
               </label>
               <input
                 name="whatsapp"
@@ -288,19 +288,19 @@ export default async function EquipoPage({
                 placeholder="528181234567"
                 className="w-full text-sm border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-300 placeholder:text-slate-400 bg-white"
               />
-              <p className="text-xs text-slate-400 mt-1">Para notificarle cuando le asignen un lead.</p>
+              <p className="text-xs text-slate-400 mt-1">To notify them when a lead is assigned to them.</p>
             </div>
             <button
               type="submit"
               className="w-full py-2.5 bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] hover:opacity-90 text-white font-semibold text-sm rounded-xl transition shadow-sm"
             >
-              Agregar vendedor
+              Add seller
             </button>
           </form>
         </div>
       ) : (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 text-sm text-amber-700">
-          Alcanzaste el límite de {MAX_SELLERS} vendedores. Elimina uno para poder agregar otro.
+          You reached the limit of {MAX_SELLERS} sellers. Delete one to add another.
         </div>
       )}
     </div>

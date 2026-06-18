@@ -77,7 +77,7 @@ export default function AssignLeadDropdown({
         disabled={isPending}
         className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold shadow-sm transition focus:outline-none focus:ring-2 focus:ring-[#9c4f93] disabled:opacity-60"
       >
-        <option value="">Sin asignar</option>
+        <option value="">Unassigned</option>
         {sellerOptions.map((seller) => (
   <option key={seller.user_id} value={seller.user_id}>
     {seller.email}
@@ -87,9 +87,9 @@ export default function AssignLeadDropdown({
 
       <span className="min-w-17 text-xs font-semibold">
         {status === "saving" && (
-          <span className="animate-pulse text-[#9c4f93]">Guardando...</span>
+          <span className="animate-pulse text-[#9c4f93]">Saving...</span>
         )}
-        {status === "saved" && <span className="text-green-600">Guardado</span>}
+        {status === "saved" && <span className="text-green-600">Saved</span>}
         {status === "error" && <span className="text-red-500">Error</span>}
       </span>
     </div>

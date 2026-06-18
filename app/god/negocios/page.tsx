@@ -66,7 +66,7 @@ export default async function GodNegociosPage() {
               </div>
               <div>
                 <p className="text-xs uppercase tracking-widest text-white/60">Super Admin</p>
-                <h1 className="text-xl font-bold">Negocios</h1>
+                <h1 className="text-xl font-bold">Businesses</h1>
               </div>
             </div>
             <Link
@@ -74,13 +74,13 @@ export default async function GodNegociosPage() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-900 font-semibold text-sm rounded-xl hover:bg-indigo-50 transition"
             >
               <Plus className="w-4 h-4" />
-              Nuevo negocio
+              New business
             </Link>
           </div>
           <div className="mt-4 flex gap-6 text-sm text-white/70">
             <span>{negocios.length} total</span>
-            <span className="text-emerald-300">{activos} activos</span>
-            {suspendidos > 0 && <span className="text-amber-300">{suspendidos} suspendidos</span>}
+            <span className="text-emerald-300">{activos} active</span>
+            {suspendidos > 0 && <span className="text-amber-300">{suspendidos} suspended</span>}
           </div>
         </div>
 

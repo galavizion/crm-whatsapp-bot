@@ -54,11 +54,11 @@ type SellerOption = {
 };
 
 const ESTADOS = [
-  { key: "interesado", label: "Interesado", color: "bg-blue-100 text-blue-700 border-blue-200" },
-  { key: "contactar", label: "Llamar", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  { key: "contactado", label: "Contactado", color: "bg-violet-100 text-violet-700 border-violet-200" },
-  { key: "cliente", label: "Cliente", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-  { key: "perdido", label: "Perdido", color: "bg-rose-100 text-rose-700 border-rose-200" },
+  { key: "interesado", label: "Interested", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  { key: "contactar", label: "Call", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  { key: "contactado", label: "Contacted", color: "bg-violet-100 text-violet-700 border-violet-200" },
+  { key: "cliente", label: "Client", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  { key: "perdido", label: "Lost", color: "bg-rose-100 text-rose-700 border-rose-200" },
 ];
 
 function getEstadoStyle(estado: string | null) {
@@ -106,7 +106,7 @@ export default async function LeadDetailPage({ params }: Props) {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (!businessUser?.business_id) return <ErrorBox text="Usuario sin negocio asignado." />;
+  if (!businessUser?.business_id) return <ErrorBox text="User has no business assigned." />;
 
   const businessId = businessUser.business_id;
   const isAdmin = (businessUser.role || "").toLowerCase() === "admin";
@@ -117,9 +117,9 @@ export default async function LeadDetailPage({ params }: Props) {
     .eq("id", id.trim())
     .maybeSingle();
 
-  if (!lead || error) return <ErrorBox text="Lead no encontrado." />;
-  if (lead.business_id !== businessId) return <ErrorBox text="Lead pertenece a otro negocio." />;
-  if (!isAdmin && lead.assigned_user_id !== user.id) return <ErrorBox text="No tienes acceso a este lead." />;
+  if (!lead || error) return <ErrorBox text="Lead not found." />;
+  if (lead.business_id !== businessId) return <ErrorBox text="Lead belongs to another business." />;
+  if (!isAdmin && lead.assigned_user_id !== user.id) return <ErrorBox text="You don't have access to this lead." />;
 
   const contacto = lead as Contacto;
 
@@ -142,7 +142,7 @@ export default async function LeadDetailPage({ params }: Props) {
     sellerOptions = (sellers || []).map((s) => ({
       user_id: s.user_id,
       role: s.role,
-      email: s.email || "Sin email",
+      email: s.email || "No email",
     }));
   }
 
@@ -161,7 +161,7 @@ export default async function LeadDetailPage({ params }: Props) {
         {/* BACK */}
         <Link href="/leads" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors font-medium">
           <ArrowLeft className="w-4 h-4" />
-          Volver a leads
+          Back to leads
         </Link>
 
         {/* HEADER */}
@@ -175,7 +175,7 @@ export default async function LeadDetailPage({ params }: Props) {
                 <div>
                   <div className="flex items-center gap-2">
                     <h1 className="text-lg md:text-xl font-bold text-white">
-                      {contacto.nombre || "Sin nombre"}
+                      {contacto.nombre || "No name"}
                     </h1>
                     {contacto.canal === "instagram" && (
                       <span className="rounded-full bg-pink-500/30 px-2 py-0.5 text-[10px] font-semibold text-white">Instagram</span>
@@ -201,16 +201,16 @@ export default async function LeadDetailPage({ params }: Props) {
             <div className="flex flex-wrap gap-3 md:gap-4 mt-5 pt-5 border-t border-white/10">
               <div className="flex items-center gap-2 text-sm text-slate-300">
                 <MessageCircle className="w-4 h-4 text-white    " />
-                <span>{mensajes.length} mensajes</span>
+                <span>{mensajes.length} messages</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-300">
                 <Clock className="w-4 h-4 text-white    " />
-                <span>{contacto.veces_contacto || 0} contactos</span>
+                <span>{contacto.veces_contacto || 0} contacts</span>
               </div>
               {contacto.ultima_respuesta && (
                 <div className="flex items-center gap-2 text-sm text-white">
                   <CheckCircle2 className="w-4 h-4 text-white" />
-                  <span>Último: {formatTime(contacto.ultima_respuesta)}</span>
+                  <span>Last: {formatTime(contacto.ultima_respuesta)}</span>
                 </div>
               )}
             </div>
@@ -225,19 +225,19 @@ export default async function LeadDetailPage({ params }: Props) {
               className="inline-flex items-center gap-2 px-3 md:px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-xl transition-colors"
             >
               <MessageCircle className="w-4 h-4" />
-              <span className="hidden sm:inline">Abrir </span>WhatsApp
+              <span className="hidden sm:inline">Open </span>WhatsApp
             </a>
             <a
               href={`tel:+${contacto.whatsapp}`}
               className="inline-flex items-center gap-2 px-3 md:px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 text-sm font-semibold rounded-xl border border-slate-200 transition-colors"
             >
               <Phone className="w-4 h-4" />
-              Llamar
+              Call
             </a>
 
             <div className="flex items-center gap-2 ml-auto flex-wrap justify-end">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 font-medium hidden sm:inline">Estado:</span>
+                <span className="text-xs text-slate-500 font-medium hidden sm:inline">Status:</span>
                 <StatusDropdown
                   id={contacto.id}
                   current={contacto.estado || "interesado"}
@@ -245,7 +245,7 @@ export default async function LeadDetailPage({ params }: Props) {
               </div>
               {isAdmin && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500 font-medium hidden sm:inline">Asignado:</span>
+                  <span className="text-xs text-slate-500 font-medium hidden sm:inline">Assigned:</span>
                   <AssignLeadDropdown
                     leadId={contacto.id}
                     currentAssignedUserId={contacto.assigned_user_id || null}
@@ -264,13 +264,13 @@ export default async function LeadDetailPage({ params }: Props) {
           <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col order-2 lg:order-1">
             <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-white    " />
-              <h2 className="font-semibold text-slate-800">Conversación</h2>
-              <span className="ml-auto text-xs text-white    ">{mensajes.length} mensajes</span>
+              <h2 className="font-semibold text-slate-800">Conversation</h2>
+              <span className="ml-auto text-xs text-white    ">{mensajes.length} messages</span>
             </div>
             <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-3 bg-[#ECE5DD]" style={{ maxHeight: "520px", minHeight: "300px" }}>
               {mensajes.length === 0 ? (
                 <div className="flex items-center justify-center h-40 text-slate-400 text-sm">
-                  Sin mensajes aún
+                  No messages yet
                 </div>
               ) : (
                 mensajes.map((msg) => {
@@ -279,7 +279,7 @@ export default async function LeadDetailPage({ params }: Props) {
                     <div key={msg.id} className={`flex ${isBot ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[85%] md:max-w-[78%] flex flex-col gap-1 ${isBot ? "items-end" : "items-start"}`}>
                         <span className="text-[10px] text-slate-400 px-1">
-                          {isBot ? "Bot" : "Cliente"} · {formatTime(msg.created_at)}
+                          {isBot ? "Bot" : "Client"} · {formatTime(msg.created_at)}
                         </span>
                         <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${isBot ? "bg-[#73af7f] text-white rounded-tr-none shadow-sm" : "bg-white text-white     rounded-tl-none border border-slate-200 shadow-sm"}`}>
                           {msg.texto}
@@ -299,7 +299,7 @@ export default async function LeadDetailPage({ params }: Props) {
             {contacto.resumen && (
               <div className="bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] rounded-2xl p-5">
                 <p className="text-xs text-white     font-medium uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" /> Resumen IA
+                  <Sparkles className="w-3.5 h-3.5" /> AI Summary
                 </p>
                 <p className="text-sm text-white     leading-relaxed">{contacto.resumen}</p>
               </div>
@@ -309,18 +309,18 @@ export default async function LeadDetailPage({ params }: Props) {
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
               <h2 className="font-semibold text-slate-800 flex items-center gap-2">
                 <User className="w-4 h-4 text-slate-400" />
-                Información del lead
+                Lead information
               </h2>
-              <InfoRow icon={<Tag className="w-3.5 h-3.5" />} label="Estado" value={estadoStyle.label} />
-              <InfoRow icon={<MessageCircle className="w-3.5 h-3.5" />} label="Último tema" value={contacto.ultimo_tema} />
-              <InfoRow icon={<Lightbulb className="w-3.5 h-3.5" />} label="Necesidad" value={contacto.necesidad} />
+              <InfoRow icon={<Tag className="w-3.5 h-3.5" />} label="Status" value={estadoStyle.label} />
+              <InfoRow icon={<MessageCircle className="w-3.5 h-3.5" />} label="Last topic" value={contacto.ultimo_tema} />
+              <InfoRow icon={<Lightbulb className="w-3.5 h-3.5" />} label="Need" value={contacto.necesidad} />
             </div>
 
             {/* Notas */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
               <h2 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
                 <FileText className="w-4 h-4 text-slate-400" />
-                Notas
+                Notes
               </h2>
               <form action={saveNotes}>
                 <input type="hidden" name="leadId" value={contacto.id} />
@@ -328,14 +328,14 @@ export default async function LeadDetailPage({ params }: Props) {
                   name="notas"
                   defaultValue={contacto.notas || ""}
                   rows={4}
-                  placeholder="Agrega notas sobre este lead..."
+                  placeholder="Add notes about this lead..."
                   className="w-full text-sm text-slate-700 border border-slate-200 rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-slate-300 placeholder:text-slate-400"
                 />
                 <button
                   type="submit"
                   className="mt-2 w-full py-2 bg-[linear-gradient(135deg,#8c7ac6_0%,#c84f92_100%)] hover:opacity-90 text-white text-sm font-semibold rounded-xl transition-opacity"
                 >
-                  Guardar nota
+                  Save note
                 </button>
               </form>
             </div>
@@ -365,7 +365,7 @@ function ErrorBox({ text }: { text: string }) {
       <div className="bg-white rounded-2xl border border-red-100 p-10 text-center max-w-md">
         <p className="text-red-500 font-semibold text-lg">{text}</p>
         <Link href="/leads" className="mt-4 inline-block text-sm text-slate-500 hover:text-slate-800">
-          ← Volver a leads
+          ← Back to leads
         </Link>
       </div>
     </div>

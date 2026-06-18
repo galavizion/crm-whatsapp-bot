@@ -53,33 +53,33 @@ type SellerOption = {
 };
 
 const ESTADOS_TABLA = [
-  { key: "interesado", label: "Interesados" },
-  { key: "contactar", label: "Llamar" },
-  { key: "contactado", label: "Contactados" },
-  { key: "cliente", label: "Clientes" },
-  { key: "perdido", label: "Perdidos" },
+  { key: "interesado", label: "Interested" },
+  { key: "contactar", label: "Call" },
+  { key: "contactado", label: "Contacted" },
+  { key: "cliente", label: "Clients" },
+  { key: "perdido", label: "Lost" },
 ];
 
 const ESTADOS_PIPELINE = [
-  { key: "interesado", label: "Interesados" },
-  { key: "contactar", label: "Llamar" },
-  { key: "contactado", label: "Contactados" },
+  { key: "interesado", label: "Interested" },
+  { key: "contactar", label: "Call" },
+  { key: "contactado", label: "Contacted" },
 ];
 
 function formatDate(dateString: string | null) {
-  if (!dateString) return "Sin fecha";
+  if (!dateString) return "No date";
   try {
-    return new Intl.DateTimeFormat("es-MX", {
+    return new Intl.DateTimeFormat("en-US", {
       dateStyle: "medium",
       timeStyle: "short",
     }).format(new Date(dateString));
   } catch {
-    return "Sin fecha";
+    return "No date";
   }
 }
 
 function getEstadoLabel(estado: string | null) {
-  if (!estado) return "Sin estado";
+  if (!estado) return "No status";
   const found = ESTADOS_TABLA.find((e) => e.key === estado.toLowerCase());
   return found?.label || estado;
 }
@@ -122,7 +122,7 @@ function getAvatarColor(name: string | null) {
 }
 
 function emailToName(email: string | null | undefined) {
-  if (!email) return "Sin asignar";
+  if (!email) return "Unassigned";
   return email.split("@")[0];
 }
 
@@ -131,11 +131,11 @@ function relativeDate(dateString: string | null) {
   try {
     const d = new Date(dateString);
     const diff = Math.floor((Date.now() - d.getTime()) / 1000);
-    if (diff < 60) return "ahora";
+    if (diff < 60) return "now";
     if (diff < 3600) return `${Math.floor(diff / 60)}m`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
     if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
-    return new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short" }).format(d);
+    return new Intl.DateTimeFormat("en-US", { day: "numeric", month: "short" }).format(d);
   } catch {
     return "—";
   }
@@ -222,7 +222,7 @@ export default async function LeadsPage({
       sellerOptions = ((sellersData ?? []) as Array<{ user_id: string; role: string | null; email: string | null }>).map((s) => ({
         user_id: s.user_id,
         role: s.role,
-        email: s.email || "Sin email",
+        email: s.email || "No email",
       }));
     }
 
@@ -240,7 +240,7 @@ export default async function LeadsPage({
       return (
         <div className="p-6">
           <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
-            Error cargando leads: {error.message}
+            Error loading leads: {error.message}
           </div>
         </div>
       );
@@ -248,12 +248,12 @@ export default async function LeadsPage({
     contactos = (data ?? []) as Contacto[];
   }
 
-  const titulo = isGod ? "Todos los leads" : isAdmin ? "Leads" : "Mis leads";
+  const titulo = isGod ? "All leads" : isAdmin ? "Leads" : "My leads";
   const subtitulo = isGod
-    ? "Vista God — todos los leads de todos los negocios."
+    ? "God View — all leads from all businesses."
     : isAdmin
-    ? "Vista operativa de todos los leads del sistema."
-    : "Aquí ves únicamente los leads asignados a ti.";
+    ? "Operational view of all leads in the system."
+    : "Here you see only the leads assigned to you.";
 
   const filtroActivoLabel = estadoFiltro ? getEstadoLabel(estadoFiltro) : null;
 
@@ -279,7 +279,7 @@ export default async function LeadsPage({
               className="mb-3 inline-flex items-center gap-2 text-sm font-medium text-neutral-500 transition hover:text-neutral-900"
             >
               <ArrowLeft className="h-4 w-4" />
-              Volver al dashboard
+              Back to dashboard
             </Link>
             <h1 className="text-3xl font-bold tracking-tight text-neutral-900">
               {!isGod && businessName ? businessName : titulo}
@@ -288,19 +288,19 @@ export default async function LeadsPage({
             {filtroActivoLabel ? (
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-violet-100 px-3 py-1 text-sm font-medium text-violet-800">
-                  Mostrando: {filtroActivoLabel}
+                  Showing: {filtroActivoLabel}
                 </span>
                 <Link
                   href={buildLeadsUrl({ view, negocio: negocioFiltro || undefined })}
                   className="text-sm font-medium text-neutral-600 underline underline-offset-4 transition hover:text-neutral-900"
                 >
-                  Ver todos
+                  View all
                 </Link>
               </div>
             ) : (
               <div className="mt-3">
                 <span className="rounded-full bg-neutral-100 px-3 py-1 text-sm font-medium text-neutral-700">
-                  Mostrando todos
+                  Showing all
                 </span>
               </div>
             )}
@@ -314,7 +314,7 @@ export default async function LeadsPage({
                 href={buildLeadsUrl({ estado: estadoFiltro || undefined, view: "table", negocio: negocioFiltro || undefined })}
                 className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${view === "table" ? "bg-neutral-900 text-white" : "text-neutral-700 hover:bg-neutral-100"}`}
               >
-                Tabla
+                Table
               </Link>
               <Link
                 href={buildLeadsUrl({ estado: estadoFiltro || undefined, view: "pipeline", negocio: negocioFiltro || undefined })}
@@ -333,13 +333,13 @@ export default async function LeadsPage({
         {/* Filtros — estado + negocio (God) */}
         {isAdmin && (
           <div className="mb-6 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm space-y-3">
-            <div className="text-sm font-medium text-neutral-700">Estados rápidos</div>
+            <div className="text-sm font-medium text-neutral-700">Quick statuses</div>
             <div className="flex flex-wrap gap-2">
               <Link
                 href={buildLeadsUrl({ view, negocio: negocioFiltro || undefined })}
                 className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${!estadoFiltro ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"}`}
               >
-                Todos
+                All
               </Link>
               {ESTADOS_TABLA.map((estado) => (
                 <Link
@@ -354,13 +354,13 @@ export default async function LeadsPage({
 
             {isGod && businesses.length > 0 && (
               <>
-                <div className="text-sm font-medium text-neutral-700">Filtrar por negocio</div>
+                <div className="text-sm font-medium text-neutral-700">Filter by business</div>
                 <div className="flex flex-wrap gap-2">
                   <Link
                     href={buildLeadsUrl({ estado: estadoFiltro || undefined, view })}
                     className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${!negocioFiltro ? "bg-indigo-600 text-white" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"}`}
                   >
-                    Todos
+                    All
                   </Link>
                   {businesses.map((b) => (
                     <Link
@@ -395,7 +395,7 @@ export default async function LeadsPage({
                     <div className="space-y-3 p-3">
                       {leadsColumna.length === 0 ? (
                         <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-400">
-                          Sin leads
+                          No leads
                         </div>
                       ) : (
                         leadsColumna.map((lead) => {
@@ -406,12 +406,12 @@ export default async function LeadsPage({
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-1.5">
                                     <h3 className="truncate text-xs font-semibold text-neutral-900">
-                                      {lead.nombre || "Sin nombre"}
+                                      {lead.nombre || "No name"}
                                     </h3>
                                     {(() => { const b = getCanalBadge(lead.canal); return <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${b.cls}`}>{b.label}</span>; })()}
                                   </div>
                                   <p className="truncate text-[11px] text-neutral-500">
-                                    {lead.whatsapp || "Sin contacto"}
+                                    {lead.whatsapp || "No contact"}
                                   </p>
                                   {isGod && lead.business_id && (
                                     <p className="truncate text-[11px] text-indigo-500 font-medium">
@@ -431,7 +431,7 @@ export default async function LeadsPage({
                                 {isAdmin && !isGod && (
                                   <div className="space-y-1">
                                     <div className="text-[11px] text-neutral-500">
-                                      {assignedUser?.email || "Sin asignar"}
+                                      {assignedUser?.email || "Unassigned"}
                                     </div>
                                     <AssignLeadDropdown
                                       leadId={lead.id}
@@ -444,7 +444,7 @@ export default async function LeadsPage({
                                   href={`/leads/${lead.id}`}
                                   className="inline-flex items-center gap-1 text-xs font-medium text-neutral-700 underline underline-offset-4"
                                 >
-                                  Ver
+                                  View
                                   <ArrowUpRight className="h-3 w-3" />
                                 </Link>
                               </div>
@@ -463,18 +463,18 @@ export default async function LeadsPage({
             {/* Tabla desktop */}
             <div className="hidden overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm lg:block">
               {contactos.length === 0 ? (
-                <div className="p-6 text-sm text-neutral-500">No hay leads para mostrar.</div>
+                <div className="p-6 text-sm text-neutral-500">No leads to show.</div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="min-w-full">
                     <thead>
                       <tr className="border-b border-neutral-100 bg-neutral-50">
-                        <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Nombre</th>
-                        <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Estado</th>
-                        {isGod && <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Negocio</th>}
-                        {isAdmin && !isGod && <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Asignado</th>}
-                        <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Necesidad</th>
-                        <th className="px-4 py-3 text-right text-[11px] font-bold uppercase tracking-wide text-neutral-500">Actividad</th>
+                        <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Name</th>
+                        <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Status</th>
+                        {isGod && <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Business</th>}
+                        {isAdmin && !isGod && <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Assigned</th>}
+                        <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wide text-neutral-500">Need</th>
+                        <th className="px-4 py-3 text-right text-[11px] font-bold uppercase tracking-wide text-neutral-500">Activity</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -492,7 +492,7 @@ export default async function LeadsPage({
                                   {getInitials(lead.nombre)}
                                 </div>
                                 <div>
-                                  <div className="text-sm font-semibold leading-tight text-neutral-900">{lead.nombre || "Sin nombre"}</div>
+                                  <div className="text-sm font-semibold leading-tight text-neutral-900">{lead.nombre || "No name"}</div>
                                   <div className="mt-0.5 flex items-center gap-1.5">
                                     <span className="text-[11px] text-neutral-400">{lead.whatsapp || "—"}</span>
                                     {(() => { const b = getCanalBadge(lead.canal); return <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${b.cls}`}>{b.label}</span>; })()}
@@ -524,7 +524,7 @@ export default async function LeadsPage({
                                       <span className="text-xs font-medium text-neutral-700">{assignedName}</span>
                                     </div>
                                   ) : (
-                                    <span className="text-xs italic text-neutral-400">Sin asignar</span>
+                                    <span className="text-xs italic text-neutral-400">Unassigned</span>
                                   )}
                                   <AssignLeadDropdown
                                     leadId={lead.id}
@@ -558,7 +558,7 @@ export default async function LeadsPage({
             <div className="space-y-4 lg:hidden">
               {contactos.length === 0 ? (
                 <div className="rounded-2xl border border-neutral-200 bg-white p-6 text-sm text-neutral-500 shadow-sm">
-                  No hay leads para mostrar.
+                  No leads to show.
                 </div>
               ) : (
                 contactos.map((lead) => {
@@ -568,10 +568,10 @@ export default async function LeadsPage({
                       <div className="mb-3 flex items-start justify-between gap-3">
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-neutral-900">{lead.nombre || "Sin nombre"}</h3>
+                            <h3 className="font-semibold text-neutral-900">{lead.nombre || "No name"}</h3>
                             {(() => { const b = getCanalBadge(lead.canal); return <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${b.cls}`}>{b.label}</span>; })()}
                           </div>
-                          <p className="mt-1 text-sm text-neutral-600">{lead.whatsapp || "Sin contacto"}</p>
+                          <p className="mt-1 text-sm text-neutral-600">{lead.whatsapp || "No contact"}</p>
                           {isGod && lead.business_id && (
                             <p className="mt-0.5 text-xs text-indigo-500 font-medium">
                               {businessMap[lead.business_id] || lead.business_id}
@@ -584,13 +584,13 @@ export default async function LeadsPage({
                       </div>
                       {lead.necesidad && <p className="mb-3 text-sm text-neutral-700">{lead.necesidad}</p>}
                       <div className="mb-3 text-xs text-neutral-500">
-                        Última actividad: {formatDate(lead.ultima_respuesta || lead.created_at)}
+                        Last activity: {formatDate(lead.ultima_respuesta || lead.created_at)}
                       </div>
                       <div className="space-y-3">
                         <StatusDropdown id={lead.id} current={lead.estado || ""} />
                         {isAdmin && !isGod && (
                           <div className="space-y-2">
-                            <div className="text-sm text-neutral-600">Asignado: {assignedUser?.email || "Sin asignar"}</div>
+                            <div className="text-sm text-neutral-600">Assigned: {assignedUser?.email || "Unassigned"}</div>
                             <AssignLeadDropdown
                               leadId={lead.id}
                               currentAssignedUserId={lead.assigned_user_id || ""}
@@ -602,7 +602,7 @@ export default async function LeadsPage({
                           href={`/leads/${lead.id}`}
                           className="inline-flex items-center gap-1 text-sm font-medium text-neutral-700 underline underline-offset-4"
                         >
-                          Ver detalle
+                          View details
                           <ArrowUpRight className="h-4 w-4" />
                         </Link>
                       </div>

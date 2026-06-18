@@ -50,9 +50,9 @@ export default async function WhatsAppPage() {
       {/* ── Conexión WhatsApp ─────────────────────────────────── */}
       <section className="space-y-3">
         <div>
-          <h2 className="text-sm font-semibold text-slate-800">Conectar WhatsApp Business</h2>
+          <h2 className="text-sm font-semibold text-slate-800">Connect WhatsApp Business</h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Vincula tu número de WhatsApp Business para que el bot responda automáticamente.
+            Link your WhatsApp Business number so the bot can respond automatically.
           </p>
         </div>
 
@@ -72,12 +72,12 @@ export default async function WhatsAppPage() {
             {waAccount ? (
               <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                Conectado
+                Connected
               </div>
             ) : (
               <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
                 <Circle className="w-3.5 h-3.5" />
-                No conectado
+                Not connected
               </div>
             )}
           </div>
@@ -85,7 +85,7 @@ export default async function WhatsAppPage() {
           <div className="px-5 py-4">
             {waAccount ? (
               <div className="flex items-center justify-between flex-wrap gap-3">
-                <p className="text-xs text-slate-500">¿Quieres cambiar el número conectado?</p>
+                <p className="text-xs text-slate-500">Want to change the connected number?</p>
                 <ConnectWhatsAppButton businessId={businessId} />
               </div>
             ) : (
@@ -99,16 +99,16 @@ export default async function WhatsAppPage() {
           className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-700 transition"
         >
           <BookOpen className="w-4 h-4" />
-          ¿Prefieres hacerlo manualmente? Ver guía paso a paso
+          Prefer to do it manually? View step-by-step guide
         </Link>
       </section>
 
       {/* ── Perfil de WhatsApp ────────────────────────────────── */}
       <section className="space-y-1">
         <div className="border-t border-slate-200 pt-6">
-          <h2 className="text-sm font-semibold text-slate-800">Perfil de WhatsApp</h2>
+          <h2 className="text-sm font-semibold text-slate-800">WhatsApp Profile</h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Personaliza cómo aparece tu negocio cuando los clientes te buscan en WhatsApp.
+            Customize how your business appears when clients search for you on WhatsApp.
           </p>
         </div>
       </section>
