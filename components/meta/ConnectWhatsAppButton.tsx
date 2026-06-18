@@ -37,7 +37,7 @@ export default function ConnectWhatsAppButton({ businessId }: Props) {
     }
 
     window.FB.login(
-      async (response: any) => {
+      (response: any) => {
         if (!response.authResponse?.code) {
           setLoading(false);
           setStatus("error");
@@ -45,25 +45,27 @@ export default function ConnectWhatsAppButton({ businessId }: Props) {
           return;
         }
 
-        try {
-          const res = await fetch("/api/meta/embedded-signup", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code: response.authResponse.code, businessId }),
-          });
+        (async () => {
+          try {
+            const res = await fetch("/api/meta/embedded-signup", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ code: response.authResponse.code, businessId }),
+            });
 
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Error al conectar WhatsApp");
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Error al conectar WhatsApp");
 
-          setStatus("success");
-          setMessage(`¡Conectado! Número: +${data.displayPhone}`);
-          router.refresh();
-        } catch (err: any) {
-          setStatus("error");
-          setMessage(err.message || "Error inesperado");
-        } finally {
-          setLoading(false);
-        }
+            setStatus("success");
+            setMessage(`¡Conectado! Número: +${data.displayPhone}`);
+            router.refresh();
+          } catch (err: any) {
+            setStatus("error");
+            setMessage(err.message || "Error inesperado");
+          } finally {
+            setLoading(false);
+          }
+        })();
       },
       {
         config_id: process.env.NEXT_PUBLIC_META_CONFIG_ID!,
