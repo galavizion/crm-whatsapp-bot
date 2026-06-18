@@ -112,28 +112,47 @@ export async function POST(req: NextRequest) {
     const meData = await meRes.json();
     console.log("👤 /me response:", JSON.stringify(meData));
 
-    // Usar páginas obtenidas client-side si están disponibles (Business Login no devuelve /me/accounts server-side)
+    // Business Login usa granular scopes — /me/accounts no funciona.
+    // Usamos debug_token para extraer los page IDs y luego pedimos el page token por ID.
     let pages: any[] = [];
+
     if (clientPages && clientPages.length > 0) {
       console.log("📄 Usando páginas del cliente:", clientPages.length);
       pages = clientPages;
     } else {
+      // Intentar /me/accounts primero (login estándar)
       const pagesRes = await fetch(`${GRAPH}/me/accounts?fields=id,name,access_token,picture&access_token=${longToken}`);
       const pagesData = await pagesRes.json();
-      if (pagesData.error) {
-        console.error("❌ /me/accounts error:", JSON.stringify(pagesData.error));
-        return NextResponse.json({ error: `Error al obtener páginas: ${pagesData.error.message}` }, { status: 400 });
-      }
       pages = pagesData.data || [];
-      console.log("📄 Páginas del servidor:", pages.length);
+      console.log("📄 /me/accounts:", pages.length);
+    }
+
+    // Si /me/accounts vacío, usar debug_token para obtener page IDs de granular scopes
+    if (pages.length === 0) {
+      const appToken = `${APP_ID}|${APP_SECRET}`;
+      const debugRes = await fetch(`${GRAPH}/debug_token?input_token=${longToken}&access_token=${appToken}`);
+      const debugData = await debugRes.json();
+      const granularScopes: any[] = debugData.data?.granular_scopes || [];
+      console.log("🔍 Granular scopes:", JSON.stringify(granularScopes));
+
+      const pageEntry = granularScopes.find((s: any) => s.scope === "pages_show_list");
+      const pageIds: string[] = pageEntry?.target_ids || [];
+      console.log("📄 Page IDs de granular scopes:", pageIds);
+
+      for (const pageId of pageIds) {
+        const pageRes = await fetch(`${GRAPH}/${pageId}?fields=id,name,access_token,picture&access_token=${longToken}`);
+        const pageData = await pageRes.json();
+        if (pageData.id && pageData.access_token) {
+          pages.push({ id: pageData.id, name: pageData.name, access_token: pageData.access_token, picture: pageData.picture });
+        } else {
+          console.error("❌ No se pudo obtener page token para", pageId, JSON.stringify(pageData));
+        }
+      }
+      console.log("📄 Páginas via granular scopes:", pages.length);
     }
 
     if (pages.length === 0) {
-      console.error("❌ /me/accounts vacío:", JSON.stringify(pagesData));
-      return NextResponse.json(
-        { error: "Facebook no devolvió páginas. Ve a facebook.com/settings → Apps y sitios web → elimina Prospekto y vuelve a conectar." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No se encontraron páginas de Facebook. Asegúrate de seleccionar al menos una página al autorizar." }, { status: 400 });
     }
 
     // Si solo hay una página, guardarla directamente
