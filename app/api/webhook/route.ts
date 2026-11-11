@@ -38,10 +38,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("🔥 WEBHOOK HIT");
-
     const body = await req.json();
-    console.log("📨 RAW:", JSON.stringify(body));
 
     // Guard: ignorar eventos de plataformas no soportadas
     const supportedObjects = ["whatsapp_business_account", "instagram", "page"];
@@ -687,6 +684,20 @@ export async function POST(req: NextRequest) {
 
       contacto = nuevo;
       console.log("👤 Contacto creado:", profileName ?? "sin nombre", "| asignado a:", assignedUserId ?? "sin asignar");
+
+      // Evento para Lola (ESP32). Fire-and-forget: no debe romper el webhook.
+      if (nuevo) {
+        waitUntil(
+          (async () => {
+            const { error } = await supabase.from("lola_eventos").insert({
+              business_id: businessId,
+              tipo: "contacto_nuevo",
+              titulo: "Nuevo lead de WhatsApp",
+            });
+            if (error) console.error("❌ lola_eventos insert:", error.message);
+          })()
+        );
+      }
     } else {
       // Actualizar nombre si viene del perfil y no lo tenemos
       const updateData: any = {
