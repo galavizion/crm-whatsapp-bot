@@ -230,6 +230,18 @@ export async function POST(req: NextRequest) {
           .select()
           .maybeSingle();
         contacto = nuevo;
+        if (nuevo) {
+          waitUntil(
+            (async () => {
+              const { error } = await supabase.from("lola_eventos").insert({
+                business_id: businessId,
+                tipo: "contacto_nuevo",
+                titulo: "Nuevo lead de Instagram",
+              });
+              if (error) console.error("❌ lola_eventos insert:", error.message);
+            })()
+          );
+        }
       } else {
         const igUpdate: Record<string, unknown> = { veces_contacto: (contacto.veces_contacto || 0) + 1 };
         if (!contacto.canal) igUpdate.canal = "instagram";
@@ -470,6 +482,18 @@ export async function POST(req: NextRequest) {
           .select()
           .maybeSingle();
         fbContacto = nuevo;
+        if (nuevo) {
+          waitUntil(
+            (async () => {
+              const { error } = await supabase.from("lola_eventos").insert({
+                business_id: businessId,
+                tipo: "contacto_nuevo",
+                titulo: "Nuevo lead de Facebook",
+              });
+              if (error) console.error("❌ lola_eventos insert:", error.message);
+            })()
+          );
+        }
       } else {
         const fbUpdate: Record<string, unknown> = { veces_contacto: (fbContacto.veces_contacto || 0) + 1 };
         if (!fbContacto.canal) fbUpdate.canal = "facebook";
