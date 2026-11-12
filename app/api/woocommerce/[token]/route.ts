@@ -50,6 +50,13 @@ export async function POST(
 
   // 2. Firma HMAC-SHA256 sobre el body crudo
   const firma = req.headers.get("x-wc-webhook-signature") || "";
+
+  // Ping de verificacion de WooCommerce al guardar el webhook: body "webhook_id=N" y sin firma.
+  // Solo se acepta con token valido y no ejecuta ninguna accion.
+  if (!firma && /^webhook_id=\d+$/.test(rawBody.trim())) {
+    return NextResponse.json({ ok: true, ping: true });
+  }
+
   if (!firma || !firmaValida(rawBody, tienda.woo_secret, firma)) {
     return NextResponse.json({ error: "firma invalida" }, { status: 401 });
   }
