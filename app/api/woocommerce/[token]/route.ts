@@ -36,7 +36,7 @@ export async function POST(
   // 1. Token de la URL -> tienda/negocio
   const { data: tienda, error: tiendaError } = await supabase
     .from("woo_tiendas")
-    .select("business_id, woo_secret")
+    .select("business_id, woo_secret, activo")
     .eq("woo_token", token)
     .maybeSingle();
 
@@ -44,7 +44,7 @@ export async function POST(
     console.error("❌ woo_tiendas:", tiendaError.message);
     return NextResponse.json({ error: "error interno" }, { status: 500 });
   }
-  if (!tienda) {
+  if (!tienda || tienda.activo === false) {
     return NextResponse.json({ error: "no autorizado" }, { status: 401 });
   }
 
@@ -77,6 +77,13 @@ export async function POST(
   if (!order?.id) {
     return NextResponse.json({ ok: true, ignorado: "sin id" });
   }
+
+  // Marca de conexion visible en Integraciones ("ultima orden recibida"). No fatal.
+  const { error: marcaError } = await supabase
+    .from("woo_tiendas")
+    .update({ ultima_orden_at: new Date().toISOString() })
+    .eq("woo_token", token);
+  if (marcaError) console.error("❌ ultima_orden_at:", marcaError.message);
 
   // Checkout sin pagar: se registra como pendiente. Lola lo anuncia como carrito
   // abandonado si pasan N minutos sin que se pague (ver /api/lola/eventos).

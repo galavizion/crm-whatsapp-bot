@@ -62,20 +62,69 @@ async function materializarCarritosAbandonados(businessId: string) {
   }
 }
 
-export async function GET(req: NextRequest) {
-  const esperado = process.env.LOLA_API_TOKEN || "";
-  const businessId = process.env.LOLA_BUSINESS_ID || "";
-  if (!esperado || !businessId) {
-    return NextResponse.json({ error: "no configurado" }, { status: 503 });
+// Por instancia: el calculo de carritos abandonados corre como maximo 1 vez por minuto por negocio.
+const ULTIMO_CALCULO = new Map<string, number>();
+const INTERVALO_CALCULO_MS = 60_000;
+// Cada cuanto se actualiza ultimo_contacto (evita una escritura por consulta).
+const INTERVALO_CONTACTO_MS = 60_000;
+
+type Resolucion =
+  | { ok: true; businessId: string }
+  | { ok: false; status: number; error: string };
+
+async function resolverToken(token: string): Promise<Resolucion> {
+  // 1. Dispositivo registrado en lola_dispositivos (licencia por negocio).
+  const { data: disp, error } = await supabase
+    .from("lola_dispositivos")
+    .select("id, business_id, activo, vence_at, ultimo_contacto")
+    .eq("token", token)
+    .maybeSingle();
+
+  if (error) console.error("❌ lola_dispositivos:", error.message);
+
+  if (disp) {
+    if (!disp.activo || new Date(disp.vence_at).getTime() <= Date.now()) {
+      return { ok: false, status: 403, error: "licencia vencida" };
+    }
+    const ultimo = disp.ultimo_contacto ? new Date(disp.ultimo_contacto).getTime() : 0;
+    if (Date.now() - ultimo > INTERVALO_CONTACTO_MS) {
+      const { error: updError } = await supabase
+        .from("lola_dispositivos")
+        .update({ ultimo_contacto: new Date().toISOString() })
+        .eq("id", disp.id);
+      if (updError) console.error("❌ ultimo_contacto:", updError.message);
+    }
+    return { ok: true, businessId: disp.business_id };
   }
 
+  // 2. Compatibilidad: token global por variable de entorno.
+  const esperado = process.env.LOLA_API_TOKEN || "";
+  const businessIdEnv = process.env.LOLA_BUSINESS_ID || "";
+  if (esperado && businessIdEnv && tokenValido(token, esperado)) {
+    return { ok: true, businessId: businessIdEnv };
+  }
+
+  return { ok: false, status: 401, error: "no autorizado" };
+}
+
+export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization") || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  if (!token || !tokenValido(token, esperado)) {
+  if (!token) {
     return NextResponse.json({ error: "no autorizado" }, { status: 401 });
   }
 
-  await materializarCarritosAbandonados(businessId);
+  const resolucion = await resolverToken(token);
+  if (!resolucion.ok) {
+    return NextResponse.json({ error: resolucion.error }, { status: resolucion.status });
+  }
+  const businessId = resolucion.businessId;
+
+  const ahora = Date.now();
+  if (ahora - (ULTIMO_CALCULO.get(businessId) ?? 0) > INTERVALO_CALCULO_MS) {
+    ULTIMO_CALCULO.set(businessId, ahora);
+    await materializarCarritosAbandonados(businessId);
+  }
 
   const raw = new URL(req.url).searchParams.get("despues_de");
   const despuesDe = Number.parseInt(raw ?? "0", 10);

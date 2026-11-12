@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, Users, Globe, UserCircle } from "lucide-react";
+import { Bot, Users, Globe, UserCircle, Plug } from "lucide-react";
 
 function WAIcon() {
   return (
@@ -34,6 +34,7 @@ const TABS = [
   { href: "/mi-negocio/facebook",  label: "Facebook",  icon: <FBIcon /> },
   { href: "/mi-negocio/instagram", label: "Instagram", icon: <IGIcon /> },
   { href: "/mi-negocio/web",       label: "Web",       icon: <Globe className="w-4 h-4" /> },
+  { href: "/mi-negocio/integraciones", label: "Integraciones", icon: <Plug className="w-4 h-4" /> },
   { href: "/mi-negocio/equipo",    label: "Team",      icon: <Users className="w-4 h-4" /> },
   { href: "/mi-negocio/cuenta",    label: "Account",   icon: <UserCircle className="w-4 h-4" /> },
 ];
