@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import { Check, Copy, Eye, EyeOff, ShoppingCart, Radio, Store } from "lucide-react";
 import { conectarWoo, regenerarWoo, regenerarTokenLola } from "@/app/mi-negocio/integraciones/actions";
 
@@ -92,6 +93,7 @@ function Tarjeta({
 
 export default function Integraciones({ woo, lola }: { woo: Woo; lola: Lola }) {
   const [pendiente, startTransition] = useTransition();
+  const [verQr, setVerQr] = useState(false);
   const [mensaje, setMensaje] = useState<{ ok: boolean; texto: string } | null>(null);
 
   function ejecutar(accion: () => Promise<{ ok: boolean; message: string }>, confirmar?: string) {
@@ -209,6 +211,22 @@ export default function Integraciones({ woo, lola }: { woo: Woo; lola: Lola }) {
               horario en Mi Negocio → Perfil.
             </p>
             <Campo label="Token de tu Lola" value={lola.token} secreto />
+            <button
+              type="button"
+              onClick={() => setVerQr((v) => !v)}
+              className="text-xs text-slate-500 underline hover:text-slate-800 mr-3"
+            >
+              {verQr ? "Ocultar QR" : "Mostrar QR del token"}
+            </button>
+            {verQr && (
+              <div className="bg-white p-3 inline-block rounded border border-slate-200">
+                <QRCodeSVG value={lola.token} size={200} marginSize={2} />
+                <p className="text-[11px] text-slate-400 mt-1 max-w-50">
+                  Escanéalo con la cámara del celular, copia el texto y pégalo en el formulario de tu Lola.
+                </p>
+              </div>
+            )}
+            <br />
             <button
               type="button"
               disabled={pendiente}
