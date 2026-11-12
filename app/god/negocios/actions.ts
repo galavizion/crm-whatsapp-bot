@@ -4,13 +4,12 @@ import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-
-const GOD_EMAIL = "rene.galaviz@gmail.com";
+import { isGodUser } from "@/lib/auth/god";
 
 async function verifyGod() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.email !== GOD_EMAIL) throw new Error("No autorizado");
+  if (!user || !isGodUser(user.email)) throw new Error("No autorizado");
   return user;
 }
 
@@ -19,6 +18,40 @@ function adminClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
+}
+
+const GRAPH = "https://graph.facebook.com/v23.0";
+
+export type TokenCheckResult =
+  | { ok: true; isValid: boolean; expiresAt: string | null; scopes: string[] }
+  | { ok: false; error: string };
+
+export async function checkTokenStatus(
+  table: "social_accounts" | "whatsapp_accounts",
+  id: string
+): Promise<TokenCheckResult> {
+  await verifyGod();
+  const supabase = adminClient();
+
+  const { data: row } = await supabase.from(table).select("access_token").eq("id", id).maybeSingle();
+  if (!row?.access_token) return { ok: false, error: "Sin token guardado" };
+
+  const appId = process.env.PROSPEKTO_APP_ID!;
+  const appSecret = process.env.PROSPEKTO_APP_SECRET!;
+  const res = await fetch(
+    `${GRAPH}/debug_token?input_token=${row.access_token}&access_token=${appId}|${appSecret}`
+  );
+  const data = await res.json();
+
+  if (data.error) return { ok: false, error: data.error.message || "Error de Meta" };
+
+  const info = data.data;
+  return {
+    ok: true,
+    isValid: !!info?.is_valid,
+    expiresAt: info?.expires_at ? new Date(info.expires_at * 1000).toISOString() : null,
+    scopes: info?.scopes || [],
+  };
 }
 
 export async function suspendBusiness(businessId: string, reason: string) {
