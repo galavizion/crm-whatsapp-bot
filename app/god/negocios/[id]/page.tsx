@@ -5,8 +5,9 @@ import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { ArrowLeft, Building2, Users, Plus, Trash2, CheckCircle, XCircle, Phone } from "lucide-react";
 import ConnectWhatsAppButton from "@/components/meta/ConnectWhatsAppButton";
-
-const GOD_EMAIL = "rene.galaviz@gmail.com";
+import CheckConnectionButton from "@/components/god/CheckConnectionButton";
+import IntegracionesGod from "@/components/god/IntegracionesGod";
+import { isGodUser } from "@/lib/auth/god";
 
 async function toggleActive(formData: FormData) {
   "use server";
@@ -102,7 +103,7 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  if (user.email !== GOD_EMAIL) redirect("/dashboard");
+  if (!isGodUser(user.email)) redirect("/dashboard");
 
   const admin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
@@ -111,6 +112,7 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
 
   const { data: users } = await admin.from("business_users").select("*").eq("business_id", id).order("role");
   const { data: waAccounts } = await admin.from("whatsapp_accounts").select("*").eq("business_id", id);
+  const { data: socialAccounts } = await admin.from("social_accounts").select("*").eq("business_id", id);
   const { count: leadsCount } = await admin.from("contactos").select("id", { count: "exact", head: true }).eq("business_id", id);
 
   return (
@@ -148,6 +150,9 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
             <span>{waAccounts?.length || 0} WhatsApp numbers</span>
           </div>
         </div>
+
+        {/* INTEGRACIONES (WooCommerce / Lola) */}
+        <IntegracionesGod businessId={id} />
 
         {/* USUARIOS */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
@@ -237,12 +242,15 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
           ) : (
             <div className="space-y-2 mb-4">
               {waAccounts.map((wa: any) => (
-                <div key={wa.id} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <p className="text-sm font-medium text-slate-800">+{wa.display_phone}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">ID: {wa.phone_number_id}</p>
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full mt-1 inline-block ${wa.is_active ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
-                    {wa.is_active ? "Active" : "Inactive"}
-                  </span>
+                <div key={wa.id} className="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800">+{wa.display_phone}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">ID: {wa.phone_number_id}</p>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full mt-1 inline-block ${wa.is_active ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                      {wa.is_active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <CheckConnectionButton table="whatsapp_accounts" id={wa.id} />
                 </div>
               ))}
             </div>
@@ -251,6 +259,34 @@ export default async function GodNegocioDetailPage({ params }: { params: Promise
             <p className="text-xs text-slate-500 mb-3">Conectar nuevo número via Embedded Signup:</p>
             <ConnectWhatsAppButton businessId={id} />
           </div> */}
+        </div>
+
+        {/* FACEBOOK / INSTAGRAM ACCOUNTS */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <h2 className="font-semibold text-slate-800 flex items-center gap-2 mb-4">
+            <Building2 className="w-4 h-4 text-slate-400" />
+            Facebook / Instagram
+          </h2>
+          {!socialAccounts || socialAccounts.length === 0 ? (
+            <p className="text-sm text-slate-400">No accounts connected.</p>
+          ) : (
+            <div className="space-y-2">
+              {socialAccounts.map((sa: any) => (
+                <div key={sa.id} className="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800 capitalize">{sa.platform} — {sa.page_name || sa.page_id}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Page ID: {sa.page_id}{sa.instagram_account_id ? ` · IG ID: ${sa.instagram_account_id}` : ""}
+                    </p>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full mt-1 inline-block ${sa.is_active ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                      {sa.is_active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <CheckConnectionButton table="social_accounts" id={sa.id} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
       </div>

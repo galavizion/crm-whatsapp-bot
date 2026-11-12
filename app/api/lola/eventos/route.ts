@@ -68,6 +68,93 @@ const INTERVALO_CALCULO_MS = 60_000;
 // Cada cuanto se actualiza ultimo_contacto (evita una escritura por consulta).
 const INTERVALO_CONTACTO_MS = 60_000;
 
+// ── Frecuencia de consulta segun horario laboral del negocio ─────────────────
+// El servidor le dice a Lola cuanto esperar (siguiente_consulta_s); el firmware
+// solo obedece. Dentro de horario: cada INTERVALO_ACTIVO_S. Fuera: cada hora,
+// o hasta la apertura si esta es antes.
+const TZ = "America/Mexico_City";
+const INTERVALO_ACTIVO_S = 15;
+const INTERVALO_RAPIDO_S = 2; // hay mas eventos pendientes que el limite por respuesta
+const INTERVALO_FUERA_S = 3600;
+const CACHE_HORARIO_MS = 5 * 60_000;
+
+type DiaHorario = { enabled?: boolean; open?: string; close?: string };
+type Horario = Record<string, DiaHorario>;
+
+const DIAS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+// Si el negocio no configuro horario (o dejo todos los dias apagados): lunes a viernes 9 a 18.
+const HORARIO_DEFECTO: Horario = Object.fromEntries(
+  DIAS.map((d) => [d, { enabled: !["sunday", "saturday"].includes(d), open: "09:00", close: "18:00" }])
+);
+
+const CACHE_HORARIOS = new Map<string, { horario: Horario; hasta: number }>();
+
+function aMinutos(hhmm: string | undefined, defecto: number): number {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm ?? "");
+  return m ? Number(m[1]) * 60 + Number(m[2]) : defecto;
+}
+
+function ahoraEnZona(): { dia: number; segundosDelDia: number } {
+  const partes = new Intl.DateTimeFormat("en-US", {
+    timeZone: TZ,
+    weekday: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
+  const get = (t: string) => partes.find((p) => p.type === t)?.value ?? "0";
+  return {
+    dia: DIAS.indexOf(get("weekday").toLowerCase()),
+    segundosDelDia: Number(get("hour")) * 3600 + Number(get("minute")) * 60 + Number(get("second")),
+  };
+}
+
+async function horarioDelNegocio(businessId: string): Promise<Horario> {
+  const cache = CACHE_HORARIOS.get(businessId);
+  if (cache && cache.hasta > Date.now()) return cache.horario;
+
+  const { data, error } = await supabase
+    .from("businesses")
+    .select("whatsapp_hours")
+    .eq("id", businessId)
+    .maybeSingle();
+  if (error) console.error("❌ whatsapp_hours:", error.message);
+
+  const guardado = (data?.whatsapp_hours ?? null) as Horario | null;
+  const hayDiasActivos = !!guardado && Object.values(guardado).some((d) => d?.enabled);
+  const horario = hayDiasActivos ? guardado! : HORARIO_DEFECTO;
+  CACHE_HORARIOS.set(businessId, { horario, hasta: Date.now() + CACHE_HORARIO_MS });
+  return horario;
+}
+
+function segundosParaSiguienteConsulta(horario: Horario): number {
+  const { dia, segundosDelDia } = ahoraEnZona();
+  if (dia < 0) return INTERVALO_ACTIVO_S;
+
+  const hoy = horario[DIAS[dia]];
+  if (hoy?.enabled) {
+    const abre = aMinutos(hoy.open, 540) * 60;
+    const cierra = aMinutos(hoy.close, 1080) * 60;
+    if (segundosDelDia >= abre && segundosDelDia < cierra) return INTERVALO_ACTIVO_S;
+  }
+
+  // Fuera de horario: espera hasta la proxima apertura, con tope de INTERVALO_FUERA_S.
+  let hastaApertura = Infinity;
+  for (let offset = 0; offset <= 7; offset++) {
+    const cfg = horario[DIAS[(dia + offset) % 7]];
+    if (!cfg?.enabled) continue;
+    const abre = aMinutos(cfg.open, 540) * 60;
+    const falta = offset * 86_400 + abre - segundosDelDia;
+    if (falta > 0) {
+      hastaApertura = falta;
+      break;
+    }
+  }
+  return Math.max(INTERVALO_ACTIVO_S, Math.min(INTERVALO_FUERA_S, hastaApertura));
+}
+
 type Resolucion =
   | { ok: true; businessId: string }
   | { ok: false; status: number; error: string };
@@ -143,8 +230,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "error interno" }, { status: 500 });
   }
 
+  const eventos = data ?? [];
+  const siguiente =
+    eventos.length >= 10
+      ? INTERVALO_RAPIDO_S
+      : segundosParaSiguienteConsulta(await horarioDelNegocio(businessId));
+
   return NextResponse.json(
-    { eventos: data ?? [] },
+    { eventos, siguiente_consulta_s: siguiente },
     { headers: { "Cache-Control": "no-store" } }
   );
 }

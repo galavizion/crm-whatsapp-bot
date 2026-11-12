@@ -204,6 +204,10 @@ export default function Integraciones({ woo, lola }: { woo: Woo; lola: Lola }) {
               <br />
               Última consulta de tu Lola: <strong>{hace(lola.ultimoContacto)}</strong>
             </p>
+            <p className="text-xs text-slate-400">
+              Lola consulta seguido en tu horario laboral y cada hora fuera de él. Puedes cambiar tu
+              horario en Mi Negocio → Perfil.
+            </p>
             <Campo label="Token de tu Lola" value={lola.token} secreto />
             <button
               type="button"
