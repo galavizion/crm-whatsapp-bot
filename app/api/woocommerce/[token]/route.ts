@@ -74,8 +74,47 @@ export async function POST(
     return NextResponse.json({ ok: true, ignorado: "body no json" });
   }
 
-  if (!order?.id || !ESTADOS_PAGADOS.has(String(order.status))) {
-    return NextResponse.json({ ok: true, ignorado: `status ${order?.status ?? "?"}` });
+  if (!order?.id) {
+    return NextResponse.json({ ok: true, ignorado: "sin id" });
+  }
+
+  // Checkout sin pagar: se registra como pendiente. Lola lo anuncia como carrito
+  // abandonado si pasan N minutos sin que se pague (ver /api/lola/eventos).
+  if (order.status === "pending") {
+    // Si ya hay venta registrada (webhooks fuera de orden), no marcarla pendiente.
+    const { data: yaVendida } = await supabase
+      .from("lola_eventos")
+      .select("id")
+      .eq("business_id", tienda.business_id)
+      .eq("ref", `woo:${order.id}`)
+      .maybeSingle();
+
+    if (!yaVendida) {
+      const total = Number.parseFloat(String(order.total ?? ""));
+      const { error: pendError } = await supabase.from("woo_pendientes").upsert(
+        {
+          business_id: tienda.business_id,
+          order_id: String(order.id),
+          total: Number.isFinite(total) ? total : null,
+        },
+        { onConflict: "business_id,order_id", ignoreDuplicates: true }
+      );
+      // No fatal: un fallo aqui no debe hacer que WooCommerce reintente en bucle.
+      if (pendError) console.error("❌ woo_pendientes upsert:", pendError.message);
+    }
+    return NextResponse.json({ ok: true, pendiente: true });
+  }
+
+  // Cualquier otro estado (pagado, en espera, cancelado, fallido...) deja de ser "abandonado".
+  const { error: delError } = await supabase
+    .from("woo_pendientes")
+    .delete()
+    .eq("business_id", tienda.business_id)
+    .eq("order_id", String(order.id));
+  if (delError) console.error("❌ woo_pendientes delete:", delError.message);
+
+  if (!ESTADOS_PAGADOS.has(String(order.status))) {
+    return NextResponse.json({ ok: true, ignorado: `status ${order.status ?? "?"}` });
   }
 
   // 4. Evento de venta, deduplicado por orden (processing -> completed no repite).

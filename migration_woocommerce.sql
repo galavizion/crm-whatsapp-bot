@@ -22,3 +22,17 @@ create unique index if not exists lola_eventos_business_ref_uidx
 -- Ejemplo para dar de alta una tienda (cambia los valores):
 -- insert into woo_tiendas (business_id, woo_token, woo_secret)
 -- values ('a2ec2bbf-b452-4618-9dc6-6e4f15de6523', '<token-largo-aleatorio>', '<secret-largo-aleatorio>');
+
+-- Checkouts de WooCommerce creados como "pending" y aun sin pagar.
+-- /api/lola/eventos los convierte en eventos 'carrito' si pasan 30 min sin pago.
+create table if not exists woo_pendientes (
+  business_id uuid not null,
+  order_id text not null,
+  total numeric,
+  created_at timestamptz not null default now(),
+  primary key (business_id, order_id)
+);
+
+create index if not exists woo_pendientes_created_at_idx on woo_pendientes (business_id, created_at);
+
+alter table woo_pendientes enable row level security;
