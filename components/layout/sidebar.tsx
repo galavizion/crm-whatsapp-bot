@@ -13,11 +13,11 @@ import {
   X,
   ChevronDown,
   ChevronRight,
+  Plug,
 } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import Image from "next/image";
-
-const GOD_EMAIL = "rene.galaviz@gmail.com";
+import { isGodUser } from "@/lib/auth/god";
 
 function WAIcon({ size = 14 }: { size?: number }) {
   return (
@@ -54,16 +54,18 @@ const NEGOCIO_SUBITEMS = [
   { href: "/mi-negocio/whatsapp", label: "WhatsApp", icon: "wa", color: "text-emerald-400" },
   { href: "/mi-negocio/facebook", label: "Facebook", icon: "fb", color: "text-blue-400" },
   { href: "/mi-negocio/instagram", label: "Instagram", icon: "ig", color: "text-pink-400" },
+  { href: "/mi-negocio/integraciones", label: "Integraciones", icon: "plug", color: "text-cyan-400" },
   { href: "/mi-negocio/equipo", label: "Equipo", icon: "users", color: "text-amber-400" },
 ] as const;
 
-type IconKey = "wa" | "fb" | "ig" | "bot" | "users";
+type IconKey = "wa" | "fb" | "ig" | "bot" | "users" | "plug";
 
 function SubIcon({ icon, size = 14 }: { icon: IconKey; size?: number }) {
   if (icon === "wa") return <WAIcon size={size} />;
   if (icon === "fb") return <FBIcon size={size} />;
   if (icon === "ig") return <IGIcon size={size} />;
   if (icon === "bot") return <Bot size={size} />;
+  if (icon === "plug") return <Plug size={size} />;
   return <Users size={size} />;
 }
 
@@ -85,7 +87,7 @@ function NavContent({ onClose }: { onClose?: () => void }) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
     supabase.auth.getUser().then(({ data }) => {
-      setIsGod(data.user?.email === GOD_EMAIL);
+      setIsGod(isGodUser(data.user?.email));
     });
   }, []);
 
