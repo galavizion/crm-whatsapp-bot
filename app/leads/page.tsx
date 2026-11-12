@@ -9,8 +9,8 @@ import { ClickableRow } from "@/components/ClickableRow";
 import ExportLeadsButton from "@/components/ExportLeadsButton";
 import { RefreshButton } from "@/components/RefreshButton";
 import { AutoRefreshOnFocus } from "@/components/AutoRefreshOnFocus";
-
-const GOD_EMAIL = "rene.galaviz@gmail.com";
+import { isGodUser } from "@/lib/auth/god";
+import DeleteLeadButton from "@/components/leads/DeleteLeadButton";
 
 type SearchParams = {
   estado?: string;
@@ -155,7 +155,7 @@ export default async function LeadsPage({
   const view = resolvedSearchParams?.view === "pipeline" ? "pipeline" : "table";
   const negocioFiltro = resolvedSearchParams?.negocio || "";
 
-  const isGod = user.email === GOD_EMAIL;
+  const isGod = isGodUser(user.email);
 
   let contactos: Contacto[] = [];
   let sellerOptions: SellerOption[] = [];
@@ -428,6 +428,7 @@ export default async function LeadsPage({
                               </div>
                               <div className="space-y-2">
                                 <StatusDropdown id={lead.id} current={lead.estado || ""} />
+                                {isGod && <DeleteLeadButton id={lead.id} nombre={lead.nombre} />}
                                 {isAdmin && !isGod && (
                                   <div className="space-y-1">
                                     <div className="text-[11px] text-neutral-500">
@@ -501,7 +502,10 @@ export default async function LeadsPage({
                               </div>
                             </td>
                             <td className="px-4 py-3">
-                              <StatusDropdown id={lead.id} current={lead.estado || ""} />
+                              <div className="flex items-center gap-2">
+                                <StatusDropdown id={lead.id} current={lead.estado || ""} />
+                                {isGod && <DeleteLeadButton id={lead.id} nombre={lead.nombre} />}
+                              </div>
                             </td>
                             {isGod && (
                               <td className="px-4 py-3">
@@ -587,7 +591,10 @@ export default async function LeadsPage({
                         Last activity: {formatDate(lead.ultima_respuesta || lead.created_at)}
                       </div>
                       <div className="space-y-3">
-                        <StatusDropdown id={lead.id} current={lead.estado || ""} />
+                        <div className="flex items-center gap-2">
+                          <StatusDropdown id={lead.id} current={lead.estado || ""} />
+                          {isGod && <DeleteLeadButton id={lead.id} nombre={lead.nombre} />}
+                        </div>
                         {isAdmin && !isGod && (
                           <div className="space-y-2">
                             <div className="text-sm text-neutral-600">Assigned: {assignedUser?.email || "Unassigned"}</div>

@@ -5,8 +5,8 @@ import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import StatusDropdown from "@/components/StatusDropdown";
 import { ClickableRow } from "@/components/ClickableRow";
-
-const GOD_EMAIL = "rene.galaviz@gmail.com";
+import { isGodUser } from "@/lib/auth/god";
+import DeleteLeadButton from "@/components/leads/DeleteLeadButton";
 
 type AccentColor = "emerald" | "blue" | "pink";
 
@@ -92,7 +92,7 @@ export default async function LeadsFiltered({ canal, title, subtitle, accentColo
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const isGod = user.email === GOD_EMAIL;
+  const isGod = isGodUser(user.email);
   const accent = ACCENT[accentColor];
 
   let contactos: Contacto[] = [];
@@ -209,7 +209,10 @@ export default async function LeadsFiltered({ canal, title, subtitle, accentColo
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <StatusDropdown id={lead.id} current={lead.estado || ""} />
+                            <div className="flex items-center gap-2">
+                              <StatusDropdown id={lead.id} current={lead.estado || ""} />
+                              {isGod && <DeleteLeadButton id={lead.id} nombre={lead.nombre} />}
+                            </div>
                           </td>
                           {isGod && (
                             <td className="px-4 py-3">
@@ -266,7 +269,10 @@ export default async function LeadsFiltered({ canal, title, subtitle, accentColo
                       <p className="mb-3 text-sm text-neutral-600 line-clamp-2">{lead.necesidad}</p>
                     )}
                     <div className="flex items-center justify-between gap-3">
-                      <StatusDropdown id={lead.id} current={lead.estado || ""} />
+                      <div className="flex items-center gap-2">
+                        <StatusDropdown id={lead.id} current={lead.estado || ""} />
+                        {isGod && <DeleteLeadButton id={lead.id} nombre={lead.nombre} />}
+                      </div>
                       <Link
                         href={`/leads/${lead.id}`}
                         className="inline-flex items-center gap-1 text-xs font-medium text-neutral-600 hover:text-neutral-900"
