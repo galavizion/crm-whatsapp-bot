@@ -220,9 +220,15 @@ export default function Integraciones({ woo, lola }: { woo: Woo; lola: Lola }) {
             </button>
             {verQr && (
               <div className="bg-white p-3 inline-block rounded border border-slate-200">
-                <QRCodeSVG value={lola.token} size={200} marginSize={2} />
+                <QRCodeSVG
+                  value={`http://192.168.4.1/set?token=${encodeURIComponent(lola.token)}`}
+                  size={200}
+                  marginSize={2}
+                />
                 <p className="text-[11px] text-slate-400 mt-1 max-w-50">
-                  Escanéalo con la cámara del celular, copia el texto y pégalo en el formulario de tu Lola.
+                  Primero conecta tu celular al WiFi <strong>Lola-Setup</strong>, luego escanea este QR con la
+                  cámara. El token se guarda solo en tu Lola. Si no abre, copia el token de arriba y pégalo en
+                  el formulario.
                 </p>
               </div>
             )}
